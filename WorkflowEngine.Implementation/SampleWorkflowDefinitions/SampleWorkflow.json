@@ -1,0 +1,73 @@
+﻿{
+	"name": "Sample Workflow",
+	"initialState": "Start",
+	"states": [
+		{
+			"name": "Start",
+			"webhook": "https://localhost:44307/webhook/test",
+			"triggerWebhookOnExternalEvent": true,
+			"isIdle": false,
+			"transitions": [
+				{
+					"condition": "true",
+					"nextState": "Middle"
+				}
+			]
+		},
+		{
+			"name": "Middle",
+			"webhook": "https://localhost:44307/webhook/test",
+			"triggerWebhookOnExternalEvent": true,
+			"isIdle": true,
+			"transitions": [
+				{
+					"condition": "event == \"Approved\" && UserState == \"Texas\"",
+					"nextState": "Approved"
+				},
+				{
+					"condition": "event == \"Approved\" && UserState != \"Texas\"",
+					"nextState": "Declined"
+				},
+				{
+					"condition": "event == \"Declined\"",
+					"nextState": "Declined"
+				},
+				{
+					"condition": "event == \"Cancel\"",
+					"nextState": "End"
+				}
+			]
+		},
+		{
+			"name": "Approved",
+			"webhook": "https://localhost:44307/webhook/test",
+			"triggerWebhookOnExternalEvent": true,
+			"isIdle": false,
+			"transitions": [
+				{
+					"condition": "true",
+					"nextState": "End"
+				}
+			]
+		},
+		{
+			"name": "Declined",
+			"webhook": "https://localhost:44307/webhook/test",
+			"triggerWebhookOnExternalEvent": true,
+			"isIdle": false,
+			"transitions": [
+				{
+					"condition": "true",
+					"nextState": "End"
+				}
+			]
+		},
+		{
+			"name": "End",
+			"webhook": "https://localhost:44307/webhook/test",
+			"triggerWebhookOnExternalEvent": true,
+			"isIdle": false,
+			"transitions": []
+		}
+	]
+}

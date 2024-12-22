@@ -1,0 +1,6 @@
+﻿services:
+  workflowengine.implementation:
+    image: workflowengine.implementation
+    build:
+      context: .
+      dockerfile: WorkflowEngine.Implementation/Dockerfile

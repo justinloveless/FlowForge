@@ -52,7 +52,7 @@ internal class WorkflowEngine : IWorkflowEngine
     public async Task<WorkflowInstanceId> StartWorkflowAsync(WorkflowDefinitionId workflowId, Dictionary<string, object> initialData)
     {
         var instance = await _repository.StartWorkflowAsync(workflowId, initialData);
-        await LogEvent("WorkflowStarted", instance.Id, $"Workflow {workflowId} started with ID {instance.Id}");
+        await LogEvent("WorkflowStarted", instance.Id, $"Workflow {workflowId} started with ID {instance.Id}", instance.CurrentState);
         await ProcessStateAsync(instance);
         return instance.Id;
     }
@@ -112,7 +112,8 @@ internal class WorkflowEngine : IWorkflowEngine
 
                 await _repository.UpdateWorkflowInstanceAsync(instance);
                 await LogEvent("StateTransition", instance.Id,
-                    $"From {previousState} to {instance.CurrentState}. Condition met: {transition.Condition}.", instance.CurrentState);
+                    $"From {previousState} to {instance.CurrentState}. Condition met: {transition.Condition}.", 
+                    instance.CurrentState);
 
                 // recursively process the next state
                 await ProcessStateAsync(instance);
@@ -120,7 +121,8 @@ internal class WorkflowEngine : IWorkflowEngine
             }
 
             await LogEvent("StateProcessed", instance.Id,
-                $"State {instance.CurrentState} processed with no transitions", instance.CurrentState);
+                $"State {instance.CurrentState} processed with no transitions", 
+                instance.CurrentState);
         }
         catch (Exception e)
         {
@@ -128,7 +130,9 @@ internal class WorkflowEngine : IWorkflowEngine
             instance.CurrentState = "Error";
             instance.StateData["previousState"] = previousState;
             await _repository.UpdateWorkflowInstanceAsync(instance);
-            await LogEvent("ExceptionOccured", instance.Id, $"Exception occured in ProcessStateAsync: {e.Message}", instance.CurrentState);
+            await LogEvent("ExceptionOccured", instance.Id, 
+                $"Exception occured in ProcessStateAsync: {e.Message}", 
+                instance.CurrentState);
             throw;
         }
     }
@@ -166,8 +170,16 @@ internal class WorkflowEngine : IWorkflowEngine
         if (instance == null)
             throw new InvalidOperationException($"No workflow instance found with ID '{instanceId}'.");
 
-        if (!await CanUserActOnStateAsync(actorId, instance)) return;
-        await LogEvent("ExternalEventTriggered", instanceId, $"Event {eventName} triggered. EventData: {JsonSerializer.Serialize(eventData)}");
+        if (!await CanUserActOnStateAsync(actorId, instance))
+        {
+            await LogEvent("UnauthorizedActorTriggeredEvent", instanceId, 
+                $"Event: {eventName}. ActorId: {actorId}. EventData: {JsonSerializer.Serialize(eventData)}",
+                instance.CurrentState);
+            return;
+        }
+        await LogEvent("ExternalEventTriggered", instanceId, 
+            $"Event {eventName} triggered. EventData: {JsonSerializer.Serialize(eventData)}", 
+            instance.CurrentState);
 
         foreach (var key in eventData.Keys)
         {
@@ -244,7 +256,9 @@ internal class WorkflowEngine : IWorkflowEngine
         catch (Exception ex)
         {
             // Log and handle errors
-            LogEvent("ConditionEvalFailure", instance.Id, $"Condition evaluation failed: {condition}. Error: {ex.Message}");
+            LogEvent("ConditionEvalFailure", instance.Id, 
+                $"Condition evaluation failed: {condition}. Error: {ex.Message}", 
+                instance.CurrentState);
             throw;
         }
     }

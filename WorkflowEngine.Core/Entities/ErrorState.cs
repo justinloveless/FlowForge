@@ -5,7 +5,7 @@ public class ErrorState : StateDefinition
     public ErrorState()
     {
         Name = "Error";
-        Webhook = null;
+        Webhook = string.Empty;
         TriggerWebhookOnExternalEvent = false;
         IsIdle = true;
         Transitions = [];

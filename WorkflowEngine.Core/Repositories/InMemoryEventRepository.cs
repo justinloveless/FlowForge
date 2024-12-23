@@ -10,7 +10,7 @@ public class InMemoryEventRepository : IEventRepository
         return Task.CompletedTask;
     }
 
-    public Task<IEnumerable<WorkflowEvent>> GetEventsAsync(Guid workflowInstanceId, string? eventType = null)
+    public Task<IEnumerable<WorkflowEvent>> GetEventsAsync(WorkflowInstanceId workflowInstanceId, string? eventType = null)
     {
         var events = _events.Where(e => e.WorkflowInstanceId == workflowInstanceId);
 

@@ -1,6 +1,6 @@
 ﻿namespace WorkflowEngine.Core;
 
-public class DefaultDataProvider : IDataProvider
+internal class DefaultDataProvider : IDataProvider
 {
     private readonly HttpClient _httpClient;
 
@@ -8,7 +8,7 @@ public class DefaultDataProvider : IDataProvider
     {
         _httpClient = httpClient;
     }
-    public async Task<object> GetDataAsync(string urlTemplate, Guid instanceId, Dictionary<string, object> stateData)
+    public async Task<object> GetDataAsync(string urlTemplate, WorkflowInstanceId instanceId, Dictionary<string, object> stateData)
     {
         var url = urlTemplate.Replace("{instanceId}", instanceId.ToString());
         var response = await _httpClient.GetAsync(url);

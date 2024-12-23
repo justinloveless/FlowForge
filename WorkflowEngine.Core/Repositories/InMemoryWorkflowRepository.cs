@@ -4,12 +4,12 @@ namespace WorkflowEngine.Core;
 
 public class InMemoryWorkflowRepository : IWorkflowRepository
 {
-    private readonly Dictionary<Guid, WorkflowDefinition> _workflowDefinitions = new();
-    private readonly Dictionary<Guid, WorkflowInstance> _workflowInstances = new();
+    private readonly Dictionary<WorkflowDefinitionId, WorkflowDefinition> _workflowDefinitions = new();
+    private readonly Dictionary<WorkflowInstanceId, WorkflowInstance> _workflowInstances = new();
     public Task RegisterWorkflowAsync(WorkflowDefinition workflow)
     {
         if (Guid.Empty.Equals(workflow.Id))
-            throw new ArgumentNullException(nameof(workflow.Id), "Workflow Id cannot be empty.");
+            throw new ArgumentNullException(nameof(workflow), "Workflow Id cannot be empty.");
         
         if (!_workflowDefinitions.TryAdd(workflow.Id, workflow))
             throw new InvalidOperationException($"A workflow with the Id '{workflow.Name}' is already registered.");
@@ -17,7 +17,7 @@ public class InMemoryWorkflowRepository : IWorkflowRepository
         return Task.CompletedTask;
     }
 
-    public Task<WorkflowInstance> StartWorkflowAsync(Guid workflowId, Dictionary<string, object> initialData)
+    public Task<WorkflowInstance> StartWorkflowAsync(WorkflowDefinitionId workflowId, Dictionary<string, object> initialData)
     {
         if (!_workflowDefinitions.TryGetValue(workflowId, out var workflowDefinition))
             throw new InvalidOperationException($"No workflow found with the Id '{workflowId}'.");
@@ -27,20 +27,20 @@ public class InMemoryWorkflowRepository : IWorkflowRepository
             WorkflowName = workflowDefinition.Name,
             DefinitionId = workflowDefinition.Id,
             CurrentState = workflowDefinition.InitialState,
-            StateData = initialData,
+            WorkflowData = initialData
         };
         
         _workflowInstances[workflowInstance.Id] = workflowInstance;
         return Task.FromResult(workflowInstance);
     }
 
-    public Task<WorkflowInstance> GetWorkflowInstanceAsync(Guid instanceId)
+    public Task<WorkflowInstance> GetWorkflowInstanceAsync(WorkflowInstanceId instanceId)
     {
         _workflowInstances.TryGetValue(instanceId, out var workflowInstance);
         return Task.FromResult(workflowInstance);
     }
 
-    public Task<WorkflowDefinition> GetWorkflowDefinitionAsync(Guid instanceId)
+    public Task<WorkflowDefinition> GetWorkflowDefinitionAsync(WorkflowInstanceId instanceId)
     {
         _workflowInstances.TryGetValue(instanceId, out var workflowInstance);
         _workflowDefinitions.TryGetValue(workflowInstance.DefinitionId, out var workflowDefinition);
@@ -61,6 +61,17 @@ public class InMemoryWorkflowRepository : IWorkflowRepository
             throw new InvalidOperationException($"No workflow instance found with the ID '{instance.Id}'.");
 
         _workflowInstances[instance.Id] = instance;
+        return Task.CompletedTask;
+    }
+
+    public Task UpdateWorkflowDefinitionAsync(WorkflowDefinition workflow)
+    {
+        if (!_workflowDefinitions.ContainsKey(workflow.Id))
+            throw new InvalidOperationException($"No workflow definition found with the ID '{workflow.Id}'.");
+        
+        if (workflow.States.All(s => s.Name != "Error"))
+            workflow.States.Add(new ErrorState());
+        _workflowDefinitions[workflow.Id] = workflow;
         return Task.CompletedTask;
     }
 }

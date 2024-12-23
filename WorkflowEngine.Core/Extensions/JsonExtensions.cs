@@ -10,6 +10,11 @@ public static class JsonExtensions
             kvp => kvp.Key,
             kvp => kvp.Value is JsonElement jsonElement ? ConvertJsonElement(jsonElement) : kvp.Value);
     }
+
+    public static Dictionary<string, object> ConvertJsonToDictionary(this JsonDocument jsonDocument)
+    {
+        return (Dictionary<string, object>)ConvertJsonElement(jsonDocument.RootElement);
+    }
     
     private static object ConvertJsonElement(JsonElement element)
     {

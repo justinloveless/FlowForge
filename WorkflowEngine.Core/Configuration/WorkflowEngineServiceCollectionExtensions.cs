@@ -16,19 +16,24 @@ public static  class WorkflowEngineServiceCollectionExtensions
         
         var options = new WorkflowEngineOptions();
         configureOptions?.Invoke(options);
+        services.AddSingleton(options);
         
         // Register default implementations
         services.AddSingleton<IWorkflowRepository, InMemoryWorkflowRepository>();
         services.AddSingleton<IEventRepository, InMemoryEventRepository>();
         services.AddSingleton<IWorkflowEventQueue, InMemoryWorkflowEventQueue>();
-        services.AddSingleton<IWebhookHandler, WebhookHandler>();
+        services.AddTransient<IAssignmentResolver, DefaultAssignmentResolver>();
         services.AddSingleton<IEventLogger, ConsoleEventLogger>();
+        
+        services.AddSingleton<IWebhookHandler, WebhookHandler>();
         services.AddSingleton<IWorkflowEngine, WorkflowEngine>();
+        
         
         
         var variableMappings = new VariableUrlMappings();
         configureMappings?.Invoke(variableMappings);
         services.AddSingleton(variableMappings);
+
 
         services.AddSingleton<IDataProvider, DefaultDataProvider>();
         

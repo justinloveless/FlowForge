@@ -6,5 +6,6 @@ public class StateDefinition
     public string Webhook { get; set; } = string.Empty;
     public bool TriggerWebhookOnExternalEvent { get; set; } = true;
     public bool IsIdle { get; set; } = false;
+    public AssignmentRules Assignments { get; set; } = new();
     public List<TransitionDefinition> Transitions { get; set; } = [];
 }

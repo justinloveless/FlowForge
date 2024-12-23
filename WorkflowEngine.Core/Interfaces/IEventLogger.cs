@@ -2,5 +2,5 @@
 
 public interface IEventLogger
 {
-    Task LogEventAsync(string eventType, Guid? instanceId, string details);
+    Task LogEventAsync(string eventType, WorkflowInstanceId? instanceId, string details);
 }

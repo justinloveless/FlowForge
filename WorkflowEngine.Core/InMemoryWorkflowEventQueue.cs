@@ -2,7 +2,7 @@
 
 namespace WorkflowEngine.Core;
 
-public class InMemoryWorkflowEventQueue : IWorkflowEventQueue
+internal class InMemoryWorkflowEventQueue : IWorkflowEventQueue
 {
     private readonly ConcurrentQueue<(string, string, Dictionary<string, object>)> _queue = new();
     public Task PublishEventAsync(string workflowInstanceId, string eventName, Dictionary<string, object> eventData)

@@ -1,38 +1,33 @@
 ﻿namespace WorkflowEngine.Core;
 
-public class WorkflowEngineFacade
+public class WorkflowEngineFacade(
+    IWorkflowEngine workflowEngine,
+    IWorkflowRepository workflowRepository,
+    IEventRepository eventRepository,
+    IAssignmentResolver assignmentResolver)
 {
-    private readonly IWorkflowEngine _workflowEngine;
-    private readonly IWorkflowRepository _workflowRepository;
-    private readonly IEventRepository _eventRepository;
-    private readonly IWorkflowEventQueue _workflowEventQueue;
-
-    public WorkflowEngineFacade(IWorkflowEngine workflowEngine,
-        IWorkflowRepository workflowRepository,
-        IEventRepository eventRepository,
-        IWorkflowEventQueue workflowEventQueue)
-    {
-        _workflowEngine = workflowEngine;
-        _workflowRepository = workflowRepository;
-        _eventRepository = eventRepository;
-        _workflowEventQueue = workflowEventQueue;
-    }
     // Workflow engine methods
-    public Task RegisterWorkflowAsync(WorkflowDefinition workflow) => _workflowEngine.RegisterWorkflowAsync(workflow);
+    public Task RegisterWorkflowAsync(WorkflowDefinition workflow) => workflowEngine.RegisterWorkflowAsync(workflow);
 
-    public Task<Guid> StartWorkflowAsync(Guid workflowId, Dictionary<string, object> initialData) =>
-        _workflowEngine.StartWorkflowAsync(workflowId, initialData);
+    public Task<WorkflowInstanceId> StartWorkflowAsync(WorkflowDefinitionId workflowId, Dictionary<string, object> initialData) =>
+        workflowEngine.StartWorkflowAsync(workflowId, initialData);
 
-    public Task TriggerEventAsync(Guid instanceId, string eventName, Dictionary<string, object> eventData) =>
-        _workflowEngine.TriggerEventAsync(instanceId, eventName, eventData);
+    public Task TriggerEventAsync(WorkflowInstanceId instanceId, string eventName, Dictionary<string, object> eventData, string actorId) =>
+        workflowEngine.TriggerEventAsync(instanceId, eventName, eventData, actorId);
 
     // Repository and event-specific methods
-    public Task<IEnumerable<WorkflowEvent>> GetWorkflowEventsAsync(Guid instanceId, string? eventType = null) =>
-        _eventRepository.GetEventsAsync(instanceId, eventType);
+    public Task<IEnumerable<WorkflowEvent>> GetWorkflowEventsAsync(WorkflowInstanceId instanceId, string? eventType = null) =>
+        eventRepository.GetEventsAsync(instanceId, eventType);
 
     public async Task<IEnumerable<WorkflowDefinition>> GetWorkflowDefinitionsByNameAsync(string name) => 
-        await _workflowRepository.GetWorkflowDefinitionsAsync(name);
+        await workflowRepository.GetWorkflowDefinitionsAsync(name);
 
-    public async Task<WorkflowInstance> GetWorkflowInstanceAsync(Guid workflowInstanceId) =>
-        await _workflowRepository.GetWorkflowInstanceAsync(workflowInstanceId);
+    public async Task<WorkflowInstance> GetWorkflowInstanceAsync(WorkflowInstanceId workflowInstanceId) =>
+        await workflowRepository.GetWorkflowInstanceAsync(workflowInstanceId);
+
+    public async Task UpdateWorkflowDefinitionAsync(WorkflowDefinition workflowDefinition) =>
+        await workflowRepository.UpdateWorkflowDefinitionAsync(workflowDefinition);
+    
+    public async Task<IEnumerable<string>> GetAssignedActorsAsync(string stateName, WorkflowInstanceId workflowInstanceId) =>
+        await assignmentResolver.GetAssignmentsAsync(stateName, workflowInstanceId);
 }

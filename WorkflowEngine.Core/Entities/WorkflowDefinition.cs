@@ -2,8 +2,11 @@
 
 public class WorkflowDefinition
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public WorkflowDefinitionId Id { get; } = new (Guid.NewGuid());
     public string Name { get; set; } = string.Empty;
     public string InitialState { get; set; } = string.Empty;
     public List<StateDefinition> States { get; set; } = [];
 }
+
+[StronglyTypedId(jsonConverter: StronglyTypedIdJsonConverter.SystemTextJson)]
+public partial struct WorkflowDefinitionId;

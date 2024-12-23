@@ -13,8 +13,61 @@ public class WebhookController(WorkflowEngineFacade workflowEngine) : Controller
     public IActionResult GetUserState(string userId)
     {
         Console.WriteLine($"GetUserState: {userId}");
-        return Ok("Texas");
+        return Ok(
+            """
+            {
+            "state": "Texas"
+            }
+            """
+        );
     }
+    [HttpGet("provider/userage/{userId}")]
+    public IActionResult GetUserAge(string userId)
+    {
+        Console.WriteLine($"GetUserAge: {userId}");
+        return Ok(
+            """
+            {
+            "age": 19
+            }
+            """
+            );
+    }
+    
+    [HttpGet("provider/trainings/{instanceId:guid}")]
+    public IActionResult GetTrainings(Guid instanceId)
+    {
+        Console.WriteLine($"GetTrainings: {instanceId}");
+        var result = new
+        {
+            Classes = new List<Training>()
+            {
+                new() {
+                    Name = "How to get gud",
+                    Cost = 420,
+                    CompletedOn = DateTime.Now,
+                },
+                
+                new() {
+                    Name = "How to get gud",
+                    Cost = 420,
+                    CompletedOn = DateTime.Now,
+                }
+            },
+            UserId = instanceId.ToString(),
+            UserName = "John Doe",
+        };
+        
+        return Ok(result);
+    }
+
+    public class Training
+    {
+        public string Name { get; set; }
+        public double Cost { get; set; }
+        public DateTime CompletedOn { get; set; }
+    }
+    
     [HttpPost("test")]
     public IActionResult Post([FromBody] WebhookBody body)
     {
@@ -26,18 +79,26 @@ public class WebhookController(WorkflowEngineFacade workflowEngine) : Controller
     public async Task<IActionResult> RegisterWorkflow([FromBody] WorkflowDefinition definition)
     {
         await workflowEngine.RegisterWorkflowAsync(definition);
-        return Ok(new { id = definition.Id });
+        return Ok(definition.Id);
     }
+    
+    [HttpPut("update")]
+    public async Task<IActionResult> UpdateWorkflow([FromBody] WorkflowDefinition definition)
+    {
+        await workflowEngine.UpdateWorkflowDefinitionAsync(definition);
+        return Ok();
+    }
+    
 
-    [HttpPost("start/{workflowDefinitionId}")]
-    public async Task<IActionResult> StartWorkflow(Guid workflowDefinitionId, [FromBody] Dictionary<string, object> initialData)
+    [HttpPost("start/{workflowDefinitionId:guid}")]
+    public async Task<IActionResult> StartWorkflow([FromRoute] WorkflowDefinitionId workflowDefinitionId, [FromBody] Dictionary<string, object> initialData)
     {
         var workflowInstance = await workflowEngine.StartWorkflowAsync(workflowDefinitionId, initialData);
         return Ok(workflowInstance);
     }
 
     [HttpGet("instance")]
-    public async Task<IActionResult> GetWorkflowInstance(Guid workflowInstanceId)
+    public async Task<IActionResult> GetWorkflowInstance(WorkflowInstanceId workflowInstanceId)
     {
         var retrievedInstance = await workflowEngine.GetWorkflowInstanceAsync(workflowInstanceId);
         return Ok(retrievedInstance);
@@ -50,22 +111,29 @@ public class WebhookController(WorkflowEngineFacade workflowEngine) : Controller
         return Ok(retrievedDefinition);
     }
 
-    [HttpPost("{instanceId}/trigger")]
-    public async Task<IActionResult> TriggerEvent(Guid instanceId, [FromBody] WorkflowEventRequest request)
+    [HttpPost("{instanceId:guid}/trigger")]
+    public async Task<IActionResult> TriggerEvent([FromRoute] WorkflowInstanceId instanceId, [FromQuery] string actorId, [FromBody] WorkflowEventRequest request)
     {
         if (request == null || string.IsNullOrEmpty(request.EventName))
         {
             return BadRequest("Invalid event data.");
         }
-        await workflowEngine.TriggerEventAsync(instanceId, request.EventName, request.EventData.ConvertJsonElements());
+        await workflowEngine.TriggerEventAsync(instanceId, request.EventName, request.EventData.ConvertJsonElements(), actorId);
         return Ok(new { Message = "Event processed successfully." });
     }
 
     [HttpGet("events/{instanceId}")]
-    public async Task<IActionResult> GetWorkflowEvents(Guid instanceId, string? eventName = null)
+    public async Task<IActionResult> GetWorkflowEvents(WorkflowInstanceId instanceId, string? eventName = null)
     {
         var retrievedEvents = await workflowEngine.GetWorkflowEventsAsync(instanceId, eventName);
         return Ok(retrievedEvents);
+    }
+
+    [HttpGet("{instanceId:guid}/assignments/{stateName}")]
+    public async Task<IActionResult> GetAssignedUsers(WorkflowInstanceId instanceId, string stateName)
+    {
+        var users = await workflowEngine.GetAssignedActorsAsync(stateName, instanceId);
+        return Ok(users);
     }
     
     public class WorkflowEventRequest

@@ -3,9 +3,10 @@
 public interface IWorkflowRepository
 {
     Task RegisterWorkflowAsync(WorkflowDefinition workflow);
-    Task<WorkflowInstance> StartWorkflowAsync(Guid workflowId, Dictionary<string, object> initialData);
-    Task<WorkflowInstance> GetWorkflowInstanceAsync(Guid instanceId);
-    Task<WorkflowDefinition> GetWorkflowDefinitionAsync(Guid instanceId);
+    Task<WorkflowInstance> StartWorkflowAsync(WorkflowDefinitionId workflowId, Dictionary<string, object> initialData);
+    Task<WorkflowInstance> GetWorkflowInstanceAsync(WorkflowInstanceId instanceId);
+    Task<WorkflowDefinition> GetWorkflowDefinitionAsync(WorkflowInstanceId instanceId);
     Task<List<WorkflowDefinition>> GetWorkflowDefinitionsAsync(string name);
     Task UpdateWorkflowInstanceAsync(WorkflowInstance instance);
+    Task UpdateWorkflowDefinitionAsync(WorkflowDefinition workflow);
 }

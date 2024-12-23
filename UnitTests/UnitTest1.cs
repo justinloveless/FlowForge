@@ -1,4 +1,3 @@
-using DynamicExpresso.Exceptions;
 using FluentAssertions;
 using Moq;
 
@@ -14,6 +13,8 @@ public class UnitTest1
     private readonly Mock<IEventRepository> _eventRepository;
     private readonly Mock<IDataProvider> _dataProvider;
     private VariableUrlMappings _variableUrlMappings;
+    private WorkflowEngineOptions _workflowOptions;
+    private readonly Mock<IAssignmentResolver> _assignmentResolver;
     
     public UnitTest1()
     {
@@ -24,6 +25,8 @@ public class UnitTest1
         _eventRepository = new Mock<IEventRepository>();
         _dataProvider = new Mock<IDataProvider>();
         _variableUrlMappings = new VariableUrlMappings();
+        _workflowOptions = new WorkflowEngineOptions();
+        _assignmentResolver = new Mock<IAssignmentResolver>();
         
         _engine = new WorkflowEngine(
             _workflowRepository.Object, 
@@ -32,7 +35,9 @@ public class UnitTest1
             _workflowEventQueue.Object,
             _eventRepository.Object,
             _dataProvider.Object,
-            _variableUrlMappings);
+            _variableUrlMappings,
+            _workflowOptions,
+            _assignmentResolver.Object);
     }
 
     public static IEnumerable<object[]> GoodData()
@@ -51,7 +56,12 @@ public class UnitTest1
     [MemberData(nameof(GoodData))]
     public async Task Test1(string condition, Dictionary<string, object> value, bool expectedResult)
     {
-        var result = await _engine.EvaluateCondition(condition, Guid.Empty, value);
+        var instance = new WorkflowInstance()
+        {
+            Id = new WorkflowInstanceId(Guid.Empty),
+            StateData = value,
+        };
+        var result = await _engine.EvaluateCondition(condition, instance);
         result.Should().Be(expectedResult);
         
     }
@@ -69,26 +79,38 @@ public class UnitTest1
     [MemberData(nameof(BadData))]
     public void ShouldThrowWithBadData(string condition, Dictionary<string, object> value)
     {
-        Assert.ThrowsAnyAsync<Exception>(async () => await _engine.EvaluateCondition(condition,Guid.Empty, value));
+        var instance = new WorkflowInstance()
+        {
+            Id = new WorkflowInstanceId(Guid.Empty),
+            StateData = value,
+        };
+        Assert.ThrowsAnyAsync<Exception>(async () => await _engine.EvaluateCondition(condition, instance));
         
     }
 
     public static IEnumerable<object[]> MissingVariables()
     {
-        yield return ["userState == \"Texas\"", "userState", "Texas", new Dictionary<string, object>{}, true];
+        yield return ["userState.state == \"Texas\"", "userState", "{\"state\": \"Texas\"}", new Dictionary<string, object>{}, true];
+        yield return ["userAge.age >= 18", "userAge", "{\"age\": 18}", new Dictionary<string, object>{}, true];
     }
 
     [Theory]
     [MemberData(nameof(MissingVariables))]
-    public async Task ShouldRetrieveMissingVariables(string condition, string variableName, object valueToReturn, Dictionary<string, object> stateData, bool expectedResult)
+    public async Task ShouldRetrieveMissingVariables(string condition, string variableName, object valueToReturn,
+        Dictionary<string, object> stateData, bool expectedResult)
     {
         _variableUrlMappings.AddMapping(variableName, "https://some/url/template/with/{instanceId}");
-        _dataProvider.Setup(d => d.GetDataAsync(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<Dictionary<string, object>>()))
+        _dataProvider.Setup(d =>
+                d.GetDataAsync(It.IsAny<string>(), It.IsAny<WorkflowInstanceId>(), It.IsAny<Dictionary<string, object>>()))
             .Returns(Task.FromResult(valueToReturn));
-        
-        var result = await _engine.EvaluateCondition(condition, Guid.Empty, stateData);
+
+        var instance = new WorkflowInstance()
+        {
+            Id = new WorkflowInstanceId(Guid.Empty),
+            StateData = stateData,
+        };
+        var result = await _engine.EvaluateCondition(condition, instance);
         result.Should().Be(expectedResult);
     }
-    
-    
+
 }

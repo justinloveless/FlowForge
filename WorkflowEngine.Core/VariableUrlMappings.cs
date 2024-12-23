@@ -11,6 +11,6 @@ public class VariableUrlMappings
 
     public string? GetUrl(string variable)
     {
-        return Mappings.TryGetValue(variable, out var url) ? url : null;
+        return Mappings.GetValueOrDefault(variable);
     }
 }

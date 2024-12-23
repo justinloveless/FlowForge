@@ -7,6 +7,7 @@
 			"webhook": "https://localhost:44307/webhook/test",
 			"triggerWebhookOnExternalEvent": true,
 			"isIdle": false,
+			"assignments": null,
 			"transitions": [
 				{
 					"condition": "true",
@@ -19,13 +20,21 @@
 			"webhook": "https://localhost:44307/webhook/test",
 			"triggerWebhookOnExternalEvent": true,
 			"isIdle": true,
+			"assignments": {
+				"users": ["id01234", "user2@example.com"],
+				"groups": ["role_admin"]
+			},
 			"transitions": [
 				{
-					"condition": "event == \"Approved\" && UserState == \"Texas\"",
+					"condition": "event == \"Approved\" && UserState.state == \"Texas\"",
 					"nextState": "Approved"
 				},
 				{
-					"condition": "event == \"Approved\" && UserState != \"Texas\"",
+					"condition": "event == \"CheckAge\" && UserAge.age > 18",
+					"nextState": "Declined"
+				},
+				{
+					"condition": "event == \"CheckClasses\" && Trainings.classes.Count > 1",
 					"nextState": "Declined"
 				},
 				{
@@ -43,6 +52,7 @@
 			"webhook": "https://localhost:44307/webhook/test",
 			"triggerWebhookOnExternalEvent": true,
 			"isIdle": false,
+			"assignments": null,
 			"transitions": [
 				{
 					"condition": "true",
@@ -55,6 +65,7 @@
 			"webhook": "https://localhost:44307/webhook/test",
 			"triggerWebhookOnExternalEvent": true,
 			"isIdle": false,
+			"assignments": null,
 			"transitions": [
 				{
 					"condition": "true",
@@ -67,6 +78,7 @@
 			"webhook": "https://localhost:44307/webhook/test",
 			"triggerWebhookOnExternalEvent": true,
 			"isIdle": false,
+			"assignments": null,
 			"transitions": []
 		}
 	]

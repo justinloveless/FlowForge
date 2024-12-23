@@ -2,5 +2,5 @@
 
 public interface IDataProvider
 {
-    Task<object> GetDataAsync(string urlTemplate, Guid instanceId, Dictionary<string, object> stateData);
+    Task<object> GetDataAsync(string urlTemplate, WorkflowInstanceId instanceId, Dictionary<string, object> stateData);
 }

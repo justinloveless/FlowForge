@@ -1,9 +1,8 @@
 ﻿using System.Net.Http.Json;
-using System.Text.Json;
 
 namespace WorkflowEngine.Core;
 
-public class WebhookHandler: IWebhookHandler
+internal class WebhookHandler: IWebhookHandler
 {
     private readonly HttpClient _httpClient;
 
@@ -29,4 +28,4 @@ public class WebhookHandler: IWebhookHandler
     
 }
 
-public record WebhookBody (string WorkflowName, Guid InstanceId, string CurrentState, Dictionary<string, object> StateData);
+public record WebhookBody (string WorkflowName, WorkflowInstanceId InstanceId, string CurrentState, Dictionary<string, object> StateData);

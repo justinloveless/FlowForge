@@ -1,4 +1,5 @@
 using WorkflowEngine.Core;
+using WorkflowEngine.Postgresql;
 
 namespace WorkflowEngine.Implementation;
 
@@ -19,11 +20,11 @@ public class Program
             },
             configureMappings: mappings =>
             {
-                mappings.AddMapping("UserState", "https://localhost:44307/webhook/provider/userstate/{userId}");
-                mappings.AddMapping("UserAge", "https://localhost:44307/webhook/provider/userage/{userId}");
-                mappings.AddMapping("Trainings", "https://localhost:44307/webhook/provider/trainings/{instanceId}");
+                mappings.AddMapping("UserState", "http://localhost:8080/webhook/provider/userstate/{userId}");
+                mappings.AddMapping("UserAge", "http://localhost:8080/webhook/provider/userage/{userId}");
+                mappings.AddMapping("Trainings", "http://localhost:8080/webhook/provider/trainings/{instanceId}");
             }
-        );
+        ).UsePostgresql("Host=postgres;Database=workflow;Username=postgres;Password=password");
 
         var app = builder.Build();
 

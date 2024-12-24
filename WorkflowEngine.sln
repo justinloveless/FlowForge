@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowEngine.Core", "Work
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{3B1DAA41-D242-414C-891B-00866D00BB73}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowEngine.Postgresql", "WorkflowEngine.Postgresql\WorkflowEngine.Postgresql.csproj", "{8C5538E8-AF9D-4152-96D5-2D6C43361501}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,5 +31,9 @@ Global
 		{3B1DAA41-D242-414C-891B-00866D00BB73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3B1DAA41-D242-414C-891B-00866D00BB73}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3B1DAA41-D242-414C-891B-00866D00BB73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C5538E8-AF9D-4152-96D5-2D6C43361501}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C5538E8-AF9D-4152-96D5-2D6C43361501}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C5538E8-AF9D-4152-96D5-2D6C43361501}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C5538E8-AF9D-4152-96D5-2D6C43361501}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

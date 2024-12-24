@@ -150,7 +150,7 @@ internal class WorkflowEngine : IWorkflowEngine
         
     }
 
-    private async Task LogEvent(string eventName, WorkflowInstanceId? instanceId, string details, string? currentState = null)
+    private async Task LogEvent(string eventName, WorkflowInstanceId? instanceId, string details, string? currentState = "")
     {
         await _eventLogger.LogEventAsync(eventName, instanceId, details);
 

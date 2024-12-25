@@ -15,6 +15,8 @@ public class UnitTest1
     private VariableUrlMappings _variableUrlMappings;
     private WorkflowEngineOptions _workflowOptions;
     private readonly Mock<IAssignmentResolver> _assignmentResolver;
+    private readonly Mock<IServiceProvider> _serviceProvider;
+    private readonly WorkflowActionRegistry _workflowActionRegistry;
     
     public UnitTest1()
     {
@@ -27,6 +29,8 @@ public class UnitTest1
         _variableUrlMappings = new VariableUrlMappings();
         _workflowOptions = new WorkflowEngineOptions();
         _assignmentResolver = new Mock<IAssignmentResolver>();
+        _serviceProvider = new Mock<IServiceProvider>();
+        _workflowActionRegistry = new WorkflowActionRegistry();
         
         _engine = new WorkflowEngine(
             _workflowRepository.Object, 
@@ -37,7 +41,9 @@ public class UnitTest1
             _dataProvider.Object,
             _variableUrlMappings,
             _workflowOptions,
-            _assignmentResolver.Object);
+            _assignmentResolver.Object,
+            _serviceProvider.Object,
+            _workflowActionRegistry);
     }
 
     public static IEnumerable<object[]> GoodData()

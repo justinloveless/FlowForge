@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Collections.Immutable;
+using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace WorkflowEngine.Core;
@@ -7,9 +9,30 @@ public static class WorkflowEngineExtensions
 {
     public static WorkflowEngineBuilder AddWorkflowEngine(this IServiceCollection services,
         Action<WorkflowEngineOptions>? configureOptions = null,
-    Action<VariableUrlMappings>? configureMappings = null)
+        Action<VariableUrlMappings>? configureMappings = null,
+        Action<WorkflowActionRegistry>? configureCustomActions = null)
     {
         
+        // Add default JSON serialization configuration for WorkflowActions
+        // services.Configure<JsonSerializerOptions>(options =>
+        // {
+        //     WorkflowJsonOptions.Configure(options);
+        // });
+        var registry = new WorkflowActionRegistry();
+        configureCustomActions?.Invoke(registry);
+        services.AddScoped<WorkflowActionRegistry>(provider =>
+        {
+            
+            registry.Register("Webhook", parameters => new WebhookAction(parameters["url"].ToString()));
+            
+            registry.Register("Custom", parameters => new CustomBehaviorAction( "Custom",
+                async (instance, services) =>
+                {
+                    Console.WriteLine($"Custom action executed for workflow {instance.Id}. Parameters: {JsonSerializer.Serialize(parameters)}");
+                    await Task.CompletedTask;
+                }));
+            return registry;
+        });
         // Ensure HttpClient is registered
         if (services.All(sd => sd.ServiceType != typeof(IHttpClientFactory)))
         {
@@ -22,8 +45,8 @@ public static class WorkflowEngineExtensions
         
         
         // Default implementations
-        services.TryAddScoped<IWorkflowRepository, InMemoryWorkflowRepository>();
-        services.TryAddScoped<IEventRepository, InMemoryEventRepository>();
+        services.TryAddSingleton<IWorkflowRepository, InMemoryWorkflowRepository>();
+        services.TryAddSingleton<IEventRepository, InMemoryEventRepository>();
         services.TryAddScoped<IWorkflowEventQueue, InMemoryWorkflowEventQueue>();
         services.TryAddScoped<IAssignmentResolver, DefaultAssignmentResolver>();
         services.TryAddScoped<IEventLogger, ConsoleEventLogger>();
@@ -38,6 +61,8 @@ public static class WorkflowEngineExtensions
         
         // Register the facade
         services.AddScoped<WorkflowEngineFacade>();
+        
+        
         return new WorkflowEngineBuilder(services);
     }
 }

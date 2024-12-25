@@ -1,3 +1,4 @@
+using System.Text.Json;
 using WorkflowEngine.Core;
 using WorkflowEngine.Postgresql;
 
@@ -23,6 +24,16 @@ public class Program
                 mappings.AddMapping("UserState", "http://localhost:8080/webhook/provider/userstate/{userId}");
                 mappings.AddMapping("UserAge", "http://localhost:8080/webhook/provider/userage/{userId}");
                 mappings.AddMapping("Trainings", "http://localhost:8080/webhook/provider/trainings/{instanceId}");
+            },
+            configureCustomActions: customActions =>
+            {
+                customActions.Register( "MyBehavior", parameters => 
+                    new CustomBehaviorAction("MyBehavior", 
+                        async (instance, services) =>
+                    {
+                        Console.WriteLine($"MyBehavior executed for workflow {instance.Id}. Parameters: {JsonSerializer.Serialize(parameters)}");
+                        await Task.CompletedTask;
+                    }));
             }
         ).UsePostgresql("Host=postgres;Database=workflow;Username=postgres;Password=password");
 

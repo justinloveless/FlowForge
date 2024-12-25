@@ -17,6 +17,8 @@ internal class WorkflowEngine : IWorkflowEngine
     private readonly VariableUrlMappings _variableUrlMappings;
     private readonly WorkflowEngineOptions _workflowOptions;
     private readonly IAssignmentResolver _assignmentResolver;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly WorkflowActionRegistry _actionRegistry;
 
     public WorkflowEngine(
         IWorkflowRepository repository,
@@ -27,7 +29,9 @@ internal class WorkflowEngine : IWorkflowEngine
         IDataProvider dataProvider,
         VariableUrlMappings variableUrlMappings,
         WorkflowEngineOptions workflowOptions,
-        IAssignmentResolver assignmentResolver)
+        IAssignmentResolver assignmentResolver,
+        IServiceProvider serviceProvider,
+        WorkflowActionRegistry actionRegistry)
     {
         _repository = repository;
         _webhookHandler = webhookHandler;
@@ -38,6 +42,8 @@ internal class WorkflowEngine : IWorkflowEngine
         _variableUrlMappings = variableUrlMappings;
         _workflowOptions = workflowOptions;
         _assignmentResolver = assignmentResolver;
+        _serviceProvider = serviceProvider;
+        _actionRegistry = actionRegistry;
     }
 
     public async Task RegisterWorkflowAsync(WorkflowDefinition workflow)
@@ -64,16 +70,18 @@ internal class WorkflowEngine : IWorkflowEngine
             var workflowDefinition = await _repository.GetWorkflowDefinitionAsync(instance.Id);
             var currentStateDefinition =
                 workflowDefinition?.States.FirstOrDefault(x => x.Name == instance.CurrentState);
+            
+            // execute OnEnterActions
+            foreach (var action in currentStateDefinition.OnEnterActions)
+            {
+                var actionToExecute = _actionRegistry.Create(action.Type, action.Parameters);
+                await actionToExecute.ExecuteAsync(instance, action.Parameters, _serviceProvider);
+            }
 
             if (currentStateDefinition == null)
             {
                 throw new InvalidOperationException(
                     $"State {instance.CurrentState} not found in workflow {workflowDefinition.Name}");
-            }
-
-            if (eventName is null || currentStateDefinition.TriggerWebhookOnExternalEvent)
-            {
-                await CallWebhook(instance, currentStateDefinition);
             }
 
             if (currentStateDefinition.IsIdle)
@@ -108,10 +116,9 @@ internal class WorkflowEngine : IWorkflowEngine
                     false) continue;
 
                 var previousState = instance.CurrentState;
-                instance.CurrentState = transition.NextState;
-
-                await _repository.UpdateWorkflowInstanceAsync(instance);
-                await LogEvent("StateTransition", instance.Id,
+                await TransitionStateAsync(instance, transition.NextState);
+                
+                await LogEvent("StateTransitioned", instance.Id,
                     $"From {previousState} to {instance.CurrentState}. Condition met: {transition.Condition}.", 
                     instance.CurrentState);
 
@@ -137,17 +144,38 @@ internal class WorkflowEngine : IWorkflowEngine
         }
     }
 
-    private async Task CallWebhook(WorkflowInstance instance, StateDefinition currentStateDefinition)
+    private async Task TransitionStateAsync(WorkflowInstance instance, string targetStateName)
     {
-        if (string.IsNullOrEmpty(currentStateDefinition.Webhook)) return;
+        var currentState = instance.CurrentState;
+        var definition = await _repository.GetWorkflowDefinitionAsync(instance.Id);
+        var targetState = definition.States.FirstOrDefault(s => s.Name == targetStateName);
+
+        if (targetState == null)
+        {
+            throw new InvalidOperationException($"State '{targetStateName}' does not exist in the workflow.");
+        }
         
-        var updatedStateData =
-            await _webhookHandler.CallWebhookAsync(currentStateDefinition.Webhook, instance);
-        instance.StateData = updatedStateData;
-        await LogEvent("WebhookCalled", instance.Id,
-            $"State: {instance.CurrentState}, Webhook: {currentStateDefinition.Webhook}, StateData: {JsonSerializer.Serialize(updatedStateData)}",
-            instance.CurrentState);
+        // Execute OnExit actions for the current state
+        var currentStateDef = definition.States.FirstOrDefault(s => s.Name == currentState);
+        if (currentStateDef != null)
+        {
+            foreach (var action in currentStateDef.OnExitActions)
+            {
+                var actionToExecute = _actionRegistry.Create(action.Type, action.Parameters);
+                await actionToExecute.ExecuteAsync(instance, action.Parameters, _serviceProvider);
+            }
+        }
         
+        // Update the state
+        instance.CurrentState = targetStateName;
+        await _repository.UpdateWorkflowInstanceAsync(instance);
+
+        // // Execute OnEnter actions for the target state
+        // foreach (var action in targetState.OnEnterActions)
+        // {
+        //     var actionToExecute = _actionRegistry.Create(action.Type, action.Parameters);
+        //     await actionToExecute.ExecuteAsync(instance, action.Parameters, _serviceProvider);
+        // }
     }
 
     private async Task LogEvent(string eventName, WorkflowInstanceId? instanceId, string details, string? currentState = "")
@@ -177,8 +205,8 @@ internal class WorkflowEngine : IWorkflowEngine
                 instance.CurrentState);
             return;
         }
-        await LogEvent("ExternalEventTriggered", instanceId, 
-            $"Event {eventName} triggered. EventData: {JsonSerializer.Serialize(eventData)}", 
+        await LogEvent(eventName, instanceId, 
+            $"External event {eventName} triggered. EventData: {JsonSerializer.Serialize(eventData)}", 
             instance.CurrentState);
 
         foreach (var key in eventData.Keys)

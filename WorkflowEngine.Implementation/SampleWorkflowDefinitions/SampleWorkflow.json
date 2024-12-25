@@ -4,26 +4,45 @@
 	"states": [
 		{
 			"name": "Start",
-			"webhook": "https://localhost:44307/webhook/test",
-			"triggerWebhookOnExternalEvent": true,
-			"isIdle": false,
-			"assignments": null,
+			"onEnterActions": [
+				{
+					"type": "Webhook",
+					"parameters": {
+						"url": "{{baseurl}}/webhook/test"
+					}
+				}
+			],
+			"onExitActions": [],
 			"transitions": [
 				{
 					"condition": "true",
 					"nextState": "Middle"
 				}
-			]
+			],
+			"assignments": {
+				"groups": [],
+				"users": []
+			}
 		},
 		{
 			"name": "Middle",
-			"webhook": "https://localhost:44307/webhook/test",
-			"triggerWebhookOnExternalEvent": true,
 			"isIdle": true,
-			"assignments": {
-				"users": ["id01234", "user2@example.com"],
-				"groups": ["role_admin"]
-			},
+			"onEnterActions": [
+				{
+					"type": "Webhook",
+					"parameters": {
+						"url": "{{baseurl}}/webhook/test"
+					}
+				},
+				{
+					"type": "Custom",
+					"parameters": {
+						"url": "{{baseurl}}/webhook/test",
+						"target": "Justin"
+					}
+				}
+			],
+			"onExitActions": [],
 			"transitions": [
 				{
 					"condition": "event == \"Approved\" && UserState.state == \"Texas\"",
@@ -45,41 +64,78 @@
 					"condition": "event == \"Cancel\"",
 					"nextState": "End"
 				}
-			]
+			],
+			"assignments": {
+				"users": ["id01234", "user2@example.com"],
+				"groups": ["role_admin"]
+			}
 		},
 		{
 			"name": "Approved",
-			"webhook": "https://localhost:44307/webhook/test",
-			"triggerWebhookOnExternalEvent": true,
-			"isIdle": false,
-			"assignments": null,
+			"onEnterActions": [
+				{
+					"type": "Webhook",
+					"parameters": {
+						"url": "{{baseurl}}/webhook/test"
+					}
+				}
+			],
+			"onExitActions": [
+				{
+					"type": "MyBehavior",
+					"parameters": {
+						"url": "{{baseurl}}/webhook/test"
+					}
+				}],
 			"transitions": [
 				{
 					"condition": "true",
 					"nextState": "End"
 				}
-			]
+			],
+			"assignments": {
+				"groups": [],
+				"users": []
+			}
 		},
 		{
 			"name": "Declined",
-			"webhook": "https://localhost:44307/webhook/test",
-			"triggerWebhookOnExternalEvent": true,
-			"isIdle": false,
-			"assignments": null,
+			"onEnterActions": [
+				{
+					"type": "Webhook",
+					"parameters": {
+						"url": "{{baseurl}}/webhook/test"
+					}
+				}
+			],
+			"onExitActions": [],
 			"transitions": [
 				{
 					"condition": "true",
 					"nextState": "End"
 				}
-			]
+			],
+			"assignments": {
+				"groups": [],
+				"users": []
+			}
 		},
 		{
 			"name": "End",
-			"webhook": "https://localhost:44307/webhook/test",
-			"triggerWebhookOnExternalEvent": true,
-			"isIdle": false,
-			"assignments": null,
-			"transitions": []
+			"onEnterActions": [
+				{
+					"type": "Webhook",
+					"parameters": {
+						"url": "{{baseurl}}/webhook/test"
+					}
+				}
+			],
+			"onExitActions": [],
+			"transitions": [],
+			"assignments": {
+				"groups": [],
+				"users": []
+			}
 		}
 	]
 }

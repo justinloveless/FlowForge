@@ -7,8 +7,7 @@ public class UnitTest1
 {
     private readonly WorkflowEngine _engine;
     private readonly Mock<IWorkflowRepository> _workflowRepository;
-    private readonly Mock<IWorkflowEventQueue> _workflowEventQueue;
-    private readonly Mock<IWebhookHandler> _webhookHandler;
+    private readonly Mock<IWorkflowEventQueuePublisher> _workflowEventQueue;
     private readonly Mock<IEventLogger> _eventLogger;
     private readonly Mock<IEventRepository> _eventRepository;
     private readonly Mock<IDataProvider> _dataProvider;
@@ -21,8 +20,7 @@ public class UnitTest1
     public UnitTest1()
     {
         _workflowRepository = new Mock<IWorkflowRepository>();
-        _workflowEventQueue = new Mock<IWorkflowEventQueue>();
-        _webhookHandler = new Mock<IWebhookHandler>();
+        _workflowEventQueue = new Mock<IWorkflowEventQueuePublisher>();
         _eventLogger = new Mock<IEventLogger>();
         _eventRepository = new Mock<IEventRepository>();
         _dataProvider = new Mock<IDataProvider>();
@@ -34,7 +32,6 @@ public class UnitTest1
         
         _engine = new WorkflowEngine(
             _workflowRepository.Object, 
-            _webhookHandler.Object, 
             _eventLogger.Object,
             _workflowEventQueue.Object,
             _eventRepository.Object,

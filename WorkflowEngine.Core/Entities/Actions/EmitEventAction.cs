@@ -13,7 +13,7 @@ public class EmitEventAction(string eventType, Dictionary<string, object> eventD
     {
         var eventLogger = serviceProvider.GetRequiredService<IEventLogger>();
         var eventRepository = serviceProvider.GetRequiredService<IEventRepository>();
-        var eventQueue = serviceProvider.GetRequiredService<IWorkflowEventQueue>();
+        var eventQueue = serviceProvider.GetRequiredService<IWorkflowEventQueuePublisher>();
         await eventQueue.PublishEventAsync(instance.Id.ToString(), _eventType, _eventData);
         
         var eventLogDetails =

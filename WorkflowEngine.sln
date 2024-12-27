@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\Unit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowEngine.Postgresql", "WorkflowEngine.Postgresql\WorkflowEngine.Postgresql.csproj", "{8C5538E8-AF9D-4152-96D5-2D6C43361501}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowEngine.RabbitMQ", "WorkflowEngine.RabbitMQ\WorkflowEngine.RabbitMQ.csproj", "{86A992A6-8C67-4F89-9802-1ACD56A50828}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,5 +37,9 @@ Global
 		{8C5538E8-AF9D-4152-96D5-2D6C43361501}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C5538E8-AF9D-4152-96D5-2D6C43361501}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C5538E8-AF9D-4152-96D5-2D6C43361501}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86A992A6-8C67-4F89-9802-1ACD56A50828}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86A992A6-8C67-4F89-9802-1ACD56A50828}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86A992A6-8C67-4F89-9802-1ACD56A50828}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86A992A6-8C67-4F89-9802-1ACD56A50828}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

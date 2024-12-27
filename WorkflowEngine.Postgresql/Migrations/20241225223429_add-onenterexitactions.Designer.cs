@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WorkflowEngine.Postgresql;
@@ -11,9 +12,11 @@ using WorkflowEngine.Postgresql;
 namespace WorkflowEngine.Postgresql.Migrations
 {
     [DbContext(typeof(WorkflowDbContext))]
-    partial class WorkflowDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241225223429_add-onenterexitactions")]
+    partial class addonenterexitactions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -118,9 +121,11 @@ namespace WorkflowEngine.Postgresql.Migrations
                                 .HasColumnType("text");
 
                             b1.Property<string>("OnEnterActions")
+                                .IsRequired()
                                 .HasColumnType("jsonb");
 
                             b1.Property<string>("OnExitActions")
+                                .IsRequired()
                                 .HasColumnType("jsonb");
 
                             b1.HasKey("WorkflowDefinitionId", "Id");

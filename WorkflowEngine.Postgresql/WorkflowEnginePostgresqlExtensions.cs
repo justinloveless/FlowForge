@@ -11,8 +11,10 @@ public static class WorkflowEnginePostgresqlExtensions
         builder.Services.AddDbContext<WorkflowDbContext>(options =>
             options.UseNpgsql(connectionString));
 
-        builder.Services.AddScoped<IWorkflowRepository, PostgresqlWorkflowRepository>();
-        builder.Services.AddScoped<IEventRepository, PostgresqlEventRepository>();
+        // builder.Services.AddScoped<IWorkflowRepository, PostgresqlWorkflowRepository>();
+        // builder.Services.AddScoped<IEventRepository, PostgresqlEventRepository>();
+        builder.UseWorkflowRepository<PostgresqlWorkflowRepository>();
+        builder.UseEventRepository<PostgresqlEventRepository>();
         
         builder.Services.AddHostedService<MigrationHostedService>();
         return builder;

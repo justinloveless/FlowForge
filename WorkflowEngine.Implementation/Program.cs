@@ -1,6 +1,7 @@
 using System.Text.Json;
 using WorkflowEngine.Core;
 using WorkflowEngine.Postgresql;
+using WorkflowEngine.RabbitMQ;
 
 namespace WorkflowEngine.Implementation;
 
@@ -35,7 +36,9 @@ public class Program
                         await Task.CompletedTask;
                     }));
             }
-        ).UsePostgresql("Host=postgres;Database=workflow;Username=postgres;Password=password");
+        )
+        .UsePostgresql("Host=postgres;Database=workflow;Username=postgres;Password=password")
+        .UseRabbitMQ("rabbitmq", "workflow-queue");
 
         var app = builder.Build();
 

@@ -15,35 +15,35 @@ public class WorkflowEngineBuilder
     
     public WorkflowEngineBuilder UseWorkflowRepository<T>() where T : class, IWorkflowRepository
     {
-        _services.AddSingleton<IWorkflowRepository, T>();
+        _services.AddScoped<IWorkflowRepository, T>();
         return this;
     }
     
     public WorkflowEngineBuilder UseWorkflowRepository<T>(Func<IServiceProvider, T> implementationFactory) where T : class, IWorkflowRepository
     {
-        _services.AddSingleton<IWorkflowRepository, T>(implementationFactory);
+        _services.AddScoped<IWorkflowRepository, T>(implementationFactory);
         return this;
     }
 
     public WorkflowEngineBuilder UseEventRepository<T>() where T : class, IEventRepository
     {
-        _services.AddSingleton<IEventRepository, T>();
+        _services.AddScoped<IEventRepository, T>();
         return this;
     }
     public WorkflowEngineBuilder UseEventRepository<T>(Func<IServiceProvider, T> implementationFactory) where T : class, IEventRepository
     {
-        _services.AddSingleton<IEventRepository, T>(implementationFactory);
+        _services.AddScoped<IEventRepository, T>(implementationFactory);
         return this;
     }
 
-    public WorkflowEngineBuilder UseWorkflowEventQueue<T>() where T : class, IWorkflowEventQueue
+    public WorkflowEngineBuilder UseWorkflowEventQueue<T>() where T : class, IWorkflowEventQueuePublisher
     {
-        _services.AddSingleton<IWorkflowEventQueue, T>();
+        _services.AddSingleton<IWorkflowEventQueuePublisher, T>();
         return this;
     }
-    public WorkflowEngineBuilder UseWorkflowEventQueue<T>(Func<IServiceProvider, T> implementationFactory) where T : class, IWorkflowEventQueue
+    public WorkflowEngineBuilder UseWorkflowEventQueue<T>(Func<IServiceProvider, T> implementationFactory) where T : class, IWorkflowEventQueuePublisher
     {
-        _services.AddSingleton<IWorkflowEventQueue, T>(implementationFactory);
+        _services.AddSingleton<IWorkflowEventQueuePublisher, T>(implementationFactory);
         return this;
     }
 

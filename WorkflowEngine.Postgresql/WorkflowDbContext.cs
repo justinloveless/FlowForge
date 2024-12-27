@@ -56,6 +56,26 @@ public class WorkflowDbContext(DbContextOptions<WorkflowDbContext> options) : Db
                         t.Property(td => td.Condition).IsRequired();
                         t.Property(td => td.NextState).IsRequired();
                     });
+                    
+                    state
+                        .Property(s => s.OnEnterActions)
+                        .HasConversion(
+                            actions => JsonSerializer.Serialize(actions, new JsonSerializerOptions { WriteIndented = false }),
+                            json => string.IsNullOrEmpty(json)
+                                ? new List<WorkflowAction>()
+                                : JsonSerializer.Deserialize<List<WorkflowAction>>(json, (JsonSerializerOptions)null))
+                        .IsRequired(false)
+                        .HasColumnType("jsonb");
+
+                    state
+                        .Property(s => s.OnExitActions)
+                        .HasConversion(
+                            actions => JsonSerializer.Serialize(actions, new JsonSerializerOptions { WriteIndented = false }),
+                            json => string.IsNullOrEmpty(json)
+                                ? new List<WorkflowAction>()
+                                : JsonSerializer.Deserialize<List<WorkflowAction>>(json, (JsonSerializerOptions)null))
+                        .IsRequired(false)
+                        .HasColumnType("jsonb");
 
                 }
                 );
@@ -110,6 +130,8 @@ public class WorkflowDbContext(DbContextOptions<WorkflowDbContext> options) : Db
                     value => new WorkflowInstanceId(value) // Convert Guid to WorkflowInstanceId
                 );
         });
+        
+        
         
     }
 }

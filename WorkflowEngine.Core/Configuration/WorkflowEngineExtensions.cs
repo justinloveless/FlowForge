@@ -47,7 +47,7 @@ public static class WorkflowEngineExtensions
         // Default implementations
         services.TryAddSingleton<IWorkflowRepository, InMemoryWorkflowRepository>();
         services.TryAddSingleton<IEventRepository, InMemoryEventRepository>();
-        services.TryAddScoped<IWorkflowEventQueue, InMemoryWorkflowEventQueue>();
+        services.TryAddSingleton<IWorkflowEventQueuePublisher, InMemoryWorkflowEventQueue>();
         services.TryAddScoped<IAssignmentResolver, DefaultAssignmentResolver>();
         services.TryAddScoped<IEventLogger, ConsoleEventLogger>();
         services.TryAddScoped<IDataProvider, DefaultDataProvider>();

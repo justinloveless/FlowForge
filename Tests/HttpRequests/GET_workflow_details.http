@@ -1,0 +1,4 @@
+﻿### GET request to example server
+GET {{baseurl}}/webhook/definitions?workflowName=Sample Workflow
+
+###

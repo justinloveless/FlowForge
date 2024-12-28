@@ -3,7 +3,7 @@ using Moq;
 
 namespace WorkflowEngine.Core.UnitTests;
 
-public class UnitTest1
+public class ConditionEvaluationTests
 {
     private readonly WorkflowEngine _engine;
     private readonly Mock<IWorkflowRepository> _workflowRepository;
@@ -17,7 +17,7 @@ public class UnitTest1
     private readonly Mock<IServiceProvider> _serviceProvider;
     private readonly WorkflowActionRegistry _workflowActionRegistry;
     
-    public UnitTest1()
+    public ConditionEvaluationTests()
     {
         _workflowRepository = new Mock<IWorkflowRepository>();
         _workflowEventQueue = new Mock<IWorkflowEventQueuePublisher>();
@@ -57,7 +57,7 @@ public class UnitTest1
     }
     [Theory]
     [MemberData(nameof(GoodData))]
-    public async Task Test1(string condition, Dictionary<string, object> value, bool expectedResult)
+    public async Task When_evaluating_valid_conditions(string condition, Dictionary<string, object> value, bool expectedResult)
     {
         var instance = new WorkflowInstance()
         {
@@ -80,7 +80,7 @@ public class UnitTest1
     }
     [Theory]
     [MemberData(nameof(BadData))]
-    public void ShouldThrowWithBadData(string condition, Dictionary<string, object> value)
+    public void When_evaluating_bad_conditions(string condition, Dictionary<string, object> value)
     {
         var instance = new WorkflowInstance()
         {
@@ -99,7 +99,7 @@ public class UnitTest1
 
     [Theory]
     [MemberData(nameof(MissingVariables))]
-    public async Task ShouldRetrieveMissingVariables(string condition, string variableName, object valueToReturn,
+    public async Task When_evaluating_conditions_with_runtime_data_providers(string condition, string variableName, object valueToReturn,
         Dictionary<string, object> stateData, bool expectedResult)
     {
         _variableUrlMappings.AddMapping(variableName, "https://some/url/template/with/{instanceId}");

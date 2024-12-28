@@ -1,0 +1,8 @@
+﻿### GET request to example server
+POST {{baseurl}}/Webhook/register
+Content-Type: application/json
+
+< ./SampleWorkflowDefinitions/SampleWorkflow.json
+
+> {% client.global.set("workflowDefinitionId", response.body) %}
+###

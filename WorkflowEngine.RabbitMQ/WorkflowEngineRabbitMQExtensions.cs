@@ -16,7 +16,6 @@ public static class WorkflowEngineRabbitMQExtensions
             new PublishRabbitMQHostedService(hostName, queueName, provider.GetService<ILogger<PublishRabbitMQHostedService>>()));
         builder.Services.AddSingleton<IHostedService>(p => p.GetRequiredService<PublishRabbitMQHostedService>());
         builder.Services.AddSingleton<IWorkflowEventQueuePublisher, RmqEventQueuePublisher>();
-        // builder.UseWorkflowEventQueue<RmqEventQueuePublisher>();
         return builder;
     }
 }

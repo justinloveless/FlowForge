@@ -2,10 +2,10 @@
 using System.Text.Json;
 using Jint;
 
-[assembly: InternalsVisibleTo("UnitTests")]
+[assembly: InternalsVisibleTo("Tests")]
 namespace WorkflowEngine.Core;
 
-//Make internal methods visible to the UnitTests project
+//Make internal methods visible to the Tests project
 internal class WorkflowEngine(
     IWorkflowRepository repository,
     IEventLogger eventLogger,

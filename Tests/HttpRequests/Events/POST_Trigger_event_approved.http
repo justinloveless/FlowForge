@@ -1,0 +1,15 @@
+﻿### GET request to example server
+POST {{baseurl}}/webhook/{{workflowInstanceId}}/trigger?actorId=role_admin
+Content-Type: application/json
+
+{
+	"eventName": "Approved",
+	"eventData": {
+		"newData": "Justin approves this message",
+		"UserState": {
+			"state": "Texas"
+		}
+	}
+}
+
+###

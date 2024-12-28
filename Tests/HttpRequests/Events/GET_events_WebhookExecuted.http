@@ -1,0 +1,3 @@
+﻿### GET request to example server
+GET {{baseurl}}/webhook/events/{{workflowInstanceId}}?eventName=WebhookExecuted
+###

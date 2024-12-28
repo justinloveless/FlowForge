@@ -1,0 +1,10 @@
+﻿### GET request to example server
+POST {{baseurl}}/webhook/{{workflowInstanceId}}/trigger?actorId=role_admin
+Content-Type: application/json
+
+{
+	"eventName": "Declined",
+	"eventData": {}
+}
+
+###

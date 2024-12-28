@@ -13,15 +13,18 @@ internal class WebhookHandler: IWebhookHandler
 
     public async Task<Dictionary<string, object>> CallWebhookAsync(string webhookUrl, WorkflowInstance instance)
     {
-        var response = await _httpClient.PostAsJsonAsync(webhookUrl, new WebhookBody(
+        var request = new HttpRequestMessage(HttpMethod.Post, webhookUrl);
+        request.Content = JsonContent.Create(new WebhookBody(
             instance.WorkflowName, 
             instance.Id, 
             instance.CurrentState, 
             instance.StateData));
+        request.Headers.Add("Accept", "application/json");
+        request.Headers.Add("X-API-KEY", "abcd1234");
+        var res = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead);
+        res.EnsureSuccessStatusCode();
         
-        response.EnsureSuccessStatusCode();
-        
-        var responseData = await response.Content.ReadFromJsonAsync<Dictionary<string, object>>();
+        var responseData = await res.Content.ReadFromJsonAsync<Dictionary<string, object>>();
         return responseData.ConvertJsonElements();
     }
 

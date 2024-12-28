@@ -23,4 +23,8 @@
       <ProjectReference Include="..\WorkflowEngine.RabbitMQ\WorkflowEngine.RabbitMQ.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="SampleWorkflowDefinitions\SampleWorkflow.json" />
+    </ItemGroup>
+
 </Project>

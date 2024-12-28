@@ -30,4 +30,5 @@
     &lt;TestId&gt;xUnit::3B1DAA41-D242-414C-891B-00866D00BB73::net8.0::WorkflowEngine.Core.UnitTests.UnitTest1.TestConditionWithHardcodedVariables_THIS_PASSES&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::3B1DAA41-D242-414C-891B-00866D00BB73::net8.0::WorkflowEngine.Core.UnitTests.UnitTest1.TestJint&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
-&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
+&lt;/SessionState&gt;</s:String>
+	</wpf:ResourceDictionary>

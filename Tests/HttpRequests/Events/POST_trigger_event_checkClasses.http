@@ -1,0 +1,13 @@
+﻿### GET request to example server
+POST {{baseurl}}/webhook/{{workflowInstanceId}}/trigger?actorId=role_admin
+Content-Type: application/json
+
+{
+	"eventName": "CheckClasses",
+	"eventData": {
+		"classCost": 150,
+		"newData": "Justin approves this message"
+	}
+}
+
+###

@@ -38,7 +38,7 @@ public class WorkflowDbContext(DbContextOptions<WorkflowDbContext> options) : Db
                             .Metadata.SetValueComparer(new ValueComparer<List<string>>(
                                 (c1, c2) => c1.SequenceEqual(c2),  // Compare collections for equality
                                 c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())), // Compute hash code
-                                c => c.ToList()));; 
+                                c => c.ToList()));
                         ar.Property(a => a.Groups)
                             .HasConversion(
                                 v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
@@ -48,7 +48,7 @@ public class WorkflowDbContext(DbContextOptions<WorkflowDbContext> options) : Db
                             .Metadata.SetValueComparer(new ValueComparer<List<string>>(
                                 (c1, c2) => c1.SequenceEqual(c2),  // Compare collections for equality
                                 c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())), // Compute hash code
-                                c => c.ToList()));; 
+                                c => c.ToList()));
                     });
 
                     state.OwnsMany(e => e.Transitions, t =>
@@ -59,22 +59,22 @@ public class WorkflowDbContext(DbContextOptions<WorkflowDbContext> options) : Db
                     
                     state
                         .Property(s => s.OnEnterActions)
+                        .IsRequired(false)
                         .HasConversion(
                             actions => JsonSerializer.Serialize(actions, new JsonSerializerOptions { WriteIndented = false }),
                             json => string.IsNullOrEmpty(json)
                                 ? new List<WorkflowAction>()
                                 : JsonSerializer.Deserialize<List<WorkflowAction>>(json, (JsonSerializerOptions)null))
-                        .IsRequired(false)
                         .HasColumnType("jsonb");
 
                     state
                         .Property(s => s.OnExitActions)
+                        .IsRequired(false)
                         .HasConversion(
                             actions => JsonSerializer.Serialize(actions, new JsonSerializerOptions { WriteIndented = false }),
                             json => string.IsNullOrEmpty(json)
                                 ? new List<WorkflowAction>()
                                 : JsonSerializer.Deserialize<List<WorkflowAction>>(json, (JsonSerializerOptions)null))
-                        .IsRequired(false)
                         .HasColumnType("jsonb");
 
                 }

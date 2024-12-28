@@ -81,18 +81,18 @@ internal class WorkflowEngine(
             var workflowDefinition = await repository.GetWorkflowDefinitionAsync(instance.Id);
             var currentStateDefinition =
                 workflowDefinition?.States.FirstOrDefault(x => x.Name == instance.CurrentState);
+
+            if (currentStateDefinition == null)
+            {
+                throw new InvalidOperationException(
+                    $"State {instance.CurrentState} not found in workflow {workflowDefinition.Name}");
+            }
             
             // execute OnEnterActions
             foreach (var action in currentStateDefinition.OnEnterActions)
             {
                 var actionToExecute = actionRegistry.Create(action.Type, action.Parameters);
                 await actionToExecute.ExecuteAsync(instance, action.Parameters, serviceProvider);
-            }
-
-            if (currentStateDefinition == null)
-            {
-                throw new InvalidOperationException(
-                    $"State {instance.CurrentState} not found in workflow {workflowDefinition.Name}");
             }
 
             instance.StateData["event"] = eventName;

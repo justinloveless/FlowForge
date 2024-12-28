@@ -17,7 +17,7 @@ public static class WorkflowEngineExtensions
         services.AddScoped<WorkflowActionRegistry>(provider =>
         {
             
-            registry.Register("Webhook", parameters => new WebhookAction(parameters["url"].ToString()));
+            registry.Register("Webhook", parameters => new WebhookAction());
             
             registry.Register("Custom", parameters => new CustomBehaviorAction( "Custom",
                 async (instance, services) =>

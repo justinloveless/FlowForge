@@ -8,7 +8,10 @@
 				{
 					"type": "Webhook",
 					"parameters": {
-						"url": "{{baseurl}}/webhook/test"
+						"url": "{{baseurl}}/webhook/test",
+						"headers": {
+							"X-API-KEY": "abc123"
+						}
 					}
 				}
 			],

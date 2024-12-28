@@ -4,23 +4,26 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace WorkflowEngine.Core;
 
-public class WebhookAction(string url) : IWorkflowAction
+public class WebhookAction : IWorkflowAction
 {
-    private string _url { get; set; } = url;
 
-    private static string _type => "Webhook";
+    private const string _type = "Webhook";
     public async Task ExecuteAsync(WorkflowInstance instance, IDictionary<string, object> parameters, IServiceProvider serviceProvider)
     {
         var eventLogger = serviceProvider.GetRequiredService<IEventLogger>();
         var eventRepository = serviceProvider.GetRequiredService<IEventRepository>();
         var webhookHandler = serviceProvider.GetRequiredService<IWebhookHandler>();
         
-        if (string.IsNullOrEmpty(_url)) return;
+        var url = parameters["url"].ToString();
+        if (string.IsNullOrEmpty(url)) return;
         
-        var updatedStateData = await webhookHandler.CallWebhookAsync(_url, instance);
+        var headersString = parameters.TryGetValue("headers", out var parameter) ? parameter.ToString() : "{}";
+        var headers = JsonSerializer.Deserialize<Dictionary<string, object>>(headersString);
+
+        var updatedStateData = await webhookHandler.CallWebhookAsync(url, headers, instance);
         instance.StateData = updatedStateData;
         var eventLogDetails =
-            $"State: {instance.CurrentState}, Webhook: {_url}, StateData: {JsonSerializer.Serialize(updatedStateData)}";
+            $"State: {instance.CurrentState}, Webhook: {url}, StateData: {JsonSerializer.Serialize(updatedStateData)}";
         await eventLogger.LogEventAsync($"{_type}Executed", instance.Id, eventLogDetails);
 
         await eventRepository.AddEventAsync(new WorkflowEvent

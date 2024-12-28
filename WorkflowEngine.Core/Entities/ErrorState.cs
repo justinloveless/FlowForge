@@ -7,5 +7,8 @@ public class ErrorState : StateDefinition
         Name = "Error";
         IsIdle = true;
         Transitions = [];
+        OnEnterActions = [];
+        OnExitActions = [];
+        Assignments = new AssignmentRules();
     }
 }

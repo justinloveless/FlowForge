@@ -37,8 +37,9 @@ public class Program
                     }));
             }
         )
-        .UsePostgresql("Host=postgres;Database=workflow;Username=postgres;Password=password")
-        .UseRabbitMQ("rabbitmq", "workflow-queue");
+            .UseAssignmentResolver<CustomAssignmentResolver>()
+            .UsePostgresql("Host=postgres;Database=workflow;Username=postgres;Password=password")
+            .UseRabbitMQ("rabbitmq", "workflow-queue");
 
         var app = builder.Build();
 

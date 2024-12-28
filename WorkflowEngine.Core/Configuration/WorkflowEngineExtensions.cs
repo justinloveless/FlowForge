@@ -18,13 +18,8 @@ public static class WorkflowEngineExtensions
         {
             
             registry.Register("Webhook", parameters => new WebhookAction());
-            
-            registry.Register("Custom", parameters => new CustomBehaviorAction( "Custom",
-                async (instance, services) =>
-                {
-                    Console.WriteLine($"Custom action executed for workflow {instance.Id}. Parameters: {JsonSerializer.Serialize(parameters)}");
-                    await Task.CompletedTask;
-                }));
+            registry.Register("EmitEvent", parameters => new EmitEventAction());
+            registry.Register("Timer", parameters => new TimerAction());
             return registry;
         });
         // Ensure HttpClient is registered
@@ -40,7 +35,7 @@ public static class WorkflowEngineExtensions
         
         // Default implementations
         services.TryAddSingleton<IWorkflowRepository, InMemoryWorkflowRepository>();
-        services.TryAddSingleton<IEventRepository, InMemoryEventRepository>();
+        services.TryAddSingleton<IEventRepository, InMemoryEventRepository>();        
         services.TryAddSingleton<IWorkflowEventQueuePublisher, InMemoryWorkflowEventQueue>();
         services.TryAddScoped<IAssignmentResolver, DefaultAssignmentResolver>();
         services.TryAddScoped<IEventLogger, ConsoleEventLogger>();

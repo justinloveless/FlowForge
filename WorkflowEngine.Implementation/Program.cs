@@ -28,8 +28,8 @@ public class Program
             },
             configureCustomActions: customActions =>
             {
-                customActions.Register( "MyBehavior", parameters => 
-                    new CustomBehaviorAction("MyBehavior", 
+                customActions.Register( "Custom", parameters => 
+                    new CustomBehaviorAction("Custom", 
                         async (instance, services) =>
                     {
                         Console.WriteLine($"MyBehavior executed for workflow {instance.Id}. Parameters: {JsonSerializer.Serialize(parameters)}");

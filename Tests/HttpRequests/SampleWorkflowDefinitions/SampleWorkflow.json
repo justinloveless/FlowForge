@@ -19,11 +19,34 @@
 			"transitions": [
 				{
 					"condition": "true",
-					"nextState": "Middle"
+					"nextState": "Delay"
 				}
 			],
 			"assignments": {
 				"groups": [],
+				"users": []
+			}
+		},
+		{
+			"name": "Delay",
+			"isIdle": true,
+			"onEnterActions": [
+				{
+					"type": "Timer",
+					"parameters": {
+						"relativeDelay": "00:00:10"
+					}
+				}
+			],
+			"onExitActions": [],
+			"transitions": [
+				{
+					"condition": "event == \"Resume\"",
+					"nextState": "Middle"
+				}
+			],
+			"assignments": {
+				"groups": ["system"],
 				"users": []
 			}
 		},
@@ -85,7 +108,7 @@
 			],
 			"onExitActions": [
 				{
-					"type": "MyBehavior",
+					"type": "Custom",
 					"parameters": {
 						"url": "{{baseurl}}/webhook/test"
 					}

@@ -4,7 +4,7 @@ using WorkflowEngine.Core;
 
 namespace WorkflowEngine.Postgresql;
 
-public static class WorkflowEnginePostgresqlExtensions
+public static class WorkflowEngineExtensions
 {
     public static WorkflowEngineBuilder UsePostgresql(this WorkflowEngineBuilder builder, string connectionString)
     {

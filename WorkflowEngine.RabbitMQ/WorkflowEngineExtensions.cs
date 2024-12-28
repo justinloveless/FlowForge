@@ -5,7 +5,7 @@ using WorkflowEngine.Core;
 
 namespace WorkflowEngine.RabbitMQ;
 
-public static class WorkflowEngineRabbitMQExtensions
+public static class WorkflowEngineExtensions
 {
     
     public static WorkflowEngineBuilder UseRabbitMQ(this WorkflowEngineBuilder builder, string hostName,string queueName)

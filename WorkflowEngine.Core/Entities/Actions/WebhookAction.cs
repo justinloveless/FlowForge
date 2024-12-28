@@ -4,10 +4,24 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace WorkflowEngine.Core;
 
-public class WebhookAction : IWorkflowAction
+public class WebhookAction : WorkflowAction, IWorkflowAction
 {
 
-    private const string _type = "Webhook";
+    public WebhookAction()
+    {
+        Type = "Webhook";
+        Parameters = new Dictionary<string, object>();
+    }
+    public WebhookAction(string url, Dictionary<string, string>? headers = null)
+    {
+        Type = "Webhook";
+        Parameters = new Dictionary<string, object>
+        {
+            {"url", url}, 
+            {"headers", headers}
+        };
+    }
+
     public async Task ExecuteAsync(WorkflowInstance instance, IDictionary<string, object> parameters, IServiceProvider serviceProvider)
     {
         var eventLogger = serviceProvider.GetRequiredService<IEventLogger>();
@@ -24,12 +38,12 @@ public class WebhookAction : IWorkflowAction
         instance.StateData = updatedStateData;
         var eventLogDetails =
             $"State: {instance.CurrentState}, Webhook: {url}, StateData: {JsonSerializer.Serialize(updatedStateData)}";
-        await eventLogger.LogEventAsync($"{_type}Executed", instance.Id, eventLogDetails);
+        await eventLogger.LogEventAsync($"{Type}Executed", instance.Id, eventLogDetails);
 
         await eventRepository.AddEventAsync(new WorkflowEvent
         {
             WorkflowInstanceId = instance.Id,
-            EventType = $"{_type}Executed",
+            EventType = $"{Type}Executed",
             CurrentState = instance.CurrentState,
             Details = eventLogDetails,
             Timestamp = DateTime.UtcNow

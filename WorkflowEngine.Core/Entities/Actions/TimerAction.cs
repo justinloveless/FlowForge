@@ -2,8 +2,25 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace WorkflowEngine.Core;
 
-public class TimerAction : IWorkflowAction
+public class TimerAction : WorkflowAction, IWorkflowAction
 {
+    public TimerAction()
+    {
+        Type = "Timer";
+        Parameters = new Dictionary<string, object>();
+    }
+
+    public TimerAction(TimeSpan relativeDelay)
+    {
+        Type = "Timer";
+        Parameters = new Dictionary<string, object> { { "relativeDelay", relativeDelay } };
+    }
+
+    public TimerAction(DateTime absoluteSchedule)
+    {
+        Type = "Timer";
+        Parameters = new Dictionary<string, object> { { "absoluteSchedule", absoluteSchedule } };
+    }
     private const string _type = "Timer";
     public async Task ExecuteAsync(WorkflowInstance instance, IDictionary<string, object> parameters, IServiceProvider serviceProvider)
     {

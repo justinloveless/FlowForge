@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -13,11 +12,6 @@ public static class WorkflowEngineExtensions
         Action<WorkflowActionRegistry>? configureCustomActions = null)
     {
         
-        // Add default JSON serialization configuration for WorkflowActions
-        // services.Configure<JsonSerializerOptions>(options =>
-        // {
-        //     WorkflowJsonOptions.Configure(options);
-        // });
         var registry = new WorkflowActionRegistry();
         configureCustomActions?.Invoke(registry);
         services.AddScoped<WorkflowActionRegistry>(provider =>

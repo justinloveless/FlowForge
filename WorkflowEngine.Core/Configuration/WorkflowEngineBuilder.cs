@@ -49,12 +49,12 @@ public class WorkflowEngineBuilder
 
     public WorkflowEngineBuilder UseAssignmentResolver<T>() where T : class, IAssignmentResolver
     {
-        _services.AddSingleton<IAssignmentResolver, T>();
+        _services.AddScoped<IAssignmentResolver, T>();
         return this;
     }
     public WorkflowEngineBuilder UseAssignmentResolver<T>(Func<IServiceProvider, T> implementationFactory) where T : class, IAssignmentResolver
     {
-        _services.AddSingleton<IAssignmentResolver, T>(implementationFactory);
+        _services.AddScoped<IAssignmentResolver, T>(implementationFactory);
         return this;
     }
 

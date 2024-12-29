@@ -1,4 +1,4 @@
 ﻿### GET request to example server
-GET {{baseurl}}/webhook/events/{{workflowInstanceId}}?eventName=StateTransitioned
+GET {{baseurl}}/workflow/events/{{workflowInstanceId}}?eventName=StateTransitioned
 
 ###

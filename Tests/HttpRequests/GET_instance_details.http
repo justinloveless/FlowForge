@@ -1,4 +1,4 @@
 ﻿### GET request to example server
-GET {{baseurl}}/webhook/instance?workflowInstanceId={{workflowInstanceId}}
+GET {{baseurl}}/workflow/instance?workflowInstanceId={{workflowInstanceId}}
 
 ###

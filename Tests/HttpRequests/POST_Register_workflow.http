@@ -1,5 +1,5 @@
 ﻿### GET request to example server
-POST {{baseurl}}/Webhook/register
+POST {{baseurl}}/workflow/register
 Content-Type: application/json
 
 < ./SampleWorkflowDefinitions/SampleWorkflow.json

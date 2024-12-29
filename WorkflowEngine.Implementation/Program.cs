@@ -22,9 +22,9 @@ public class Program
             },
             configureMappings: mappings =>
             {
-                mappings.AddMapping("UserState", "http://localhost:8080/webhook/provider/userstate/{userId}");
-                mappings.AddMapping("UserAge", "http://localhost:8080/webhook/provider/userage/{userId}");
-                mappings.AddMapping("Trainings", "http://localhost:8080/webhook/provider/trainings/{instanceId}");
+                mappings.AddMapping("UserState", "http://localhost:8080/dataprovider/userstate/{userId}");
+                mappings.AddMapping("UserAge", "http://localhost:8080/dataprovider/userage/{userId}");
+                mappings.AddMapping("Trainings", "http://localhost:8080/dataprovider/trainings/{instanceId}");
             },
             configureCustomActions: customActions =>
             {

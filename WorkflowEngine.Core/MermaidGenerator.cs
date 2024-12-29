@@ -9,37 +9,57 @@ public static class MermaidGenerator
     {
         var sb = new StringBuilder();
         sb.AppendLine("stateDiagram-v2");
-        sb.AppendLine($"[*] --> {workflowDefinition.InitialState}");
-
-        foreach (var state in workflowDefinition.States)
+        var labels = GenerateStateNameLabels(workflowDefinition);
+        if (showDetails)
         {
-            var name = IsDelayAction(workflowDefinition, state.Name) ? "Delay" 
-                : IsScheduleAction(workflowDefinition, state.Name) ? "Schedule" 
-                : state.Name;
-            var nameLabel = $"n{Guid.NewGuid():N}";
-            sb.AppendLine(nameLabel + $": {name}");
-            foreach (var transition in state.Transitions) 
+            for (var index = 0; index < workflowDefinition.States.Count; index++)
             {
-                var condition = IsDelayAction(workflowDefinition, state.Name) ? GetDelayCondition(workflowDefinition, state.Name) 
-                    : IsScheduleAction(workflowDefinition, state.Name) ? GetScheduleCondition(workflowDefinition, state.Name) 
-                    : transition.Condition;
-                var nextState = transition.NextState;
-                if (IsDelayAction(workflowDefinition, nextState))
-                    sb.AppendLine($"{name} --> Delay : {condition}");
-                else if (IsScheduleAction(workflowDefinition, nextState))
-                    sb.AppendLine($"{name} --> Schedule : {condition}");
-                else
-                    sb.AppendLine($"{name} --> {nextState} : {condition}");
+                var state = workflowDefinition.States[index];
+                var actionLabels = GenerateActionLabels(state, index);
+                foreach (var kvp in actionLabels)
+                {
+                    labels.Add(kvp.Key, kvp.Value);
+                }
+                
             }
 
-            if (showDetails)
+            for (var index = 0; index < workflowDefinition.States.Count; index++)
             {
-                GenerateStateDetails(sb, state, name);
+                var state = workflowDefinition.States[index];
+                GenerateStateDetails(sb, state, index);
+                
             }
             
         }
+
+        var indexOfInitialState = workflowDefinition.States.FindIndex(s => s.Name == workflowDefinition.InitialState);
+        sb.AppendLine($"\n[*] --> state.{indexOfInitialState}");
+
+        for (var index = 0; index < workflowDefinition.States.Count; index++)
+        {
+            var state = workflowDefinition.States[index];
+            var name = labels[$"state.{index}"];
+            foreach (var transition in state.Transitions)
+            {
+                var condition = IsDelayAction(workflowDefinition, state.Name)
+                    ? GetDelayCondition(workflowDefinition, state.Name)
+                    : IsScheduleAction(workflowDefinition, state.Name)
+                        ? GetScheduleCondition(workflowDefinition, state.Name)
+                        : transition.Condition;
+                var indexOfNextState = workflowDefinition.States.FindIndex(s => s.Name == transition.NextState);
+                
+                sb.AppendLine($"state.{index} --> state.{indexOfNextState} : {condition}");
+            }
+
+        }
+
+        var indexOfEndState = workflowDefinition.States.FindIndex(s => s.Name == "End");
+        sb.AppendLine($"state.{indexOfEndState} --> [*]\n");
         
-        sb.AppendLine("End --> [*]");
+        foreach (var kvp in labels)
+        {
+            sb.AppendLine($"{kvp.Key}: {kvp.Value}");
+        }
         return sb.ToString();
     }
 
@@ -67,8 +87,18 @@ public static class MermaidGenerator
         {
             foreach (var parameter in stateDefinition.OnEnterActions[actionIndex].Parameters)
             {
-                actionLabels.Add($"OnEnterAction.{stateIndex}.{actionIndex}.{parameter.Key.Sanitize()}", parameter.Key.Sanitize() + "#58;#32;" + parameter.Value.ToString().Sanitize());
+                actionLabels.Add($"OnEnterAction.{stateIndex}.{actionIndex}.{parameter.Key.Sanitize()}",
+                    parameter.Key.Sanitize() + "#58;#32;" + parameter.Value?.ToString()?.Sanitize());
             }
+            foreach (var parameter in stateDefinition.OnExitActions[actionIndex].Parameters)
+            {
+                actionLabels.Add($"OnExitAction.{stateIndex}.{actionIndex}.{parameter.Key.Sanitize()}", 
+                    parameter.Key.Sanitize() + "#58;#32;" + parameter.Value?.ToString()?.Sanitize());
+            }
+            actionLabels.Add($"Assignments.{stateIndex}.{actionIndex}.Groups", 
+                "Groups#58;#32;" + string.Join(", ", stateDefinition.Assignments.Groups));
+            actionLabels.Add($"Assignments.{stateIndex}.{actionIndex}.Users", 
+                "Users#58;#32;" + string.Join(", ", stateDefinition.Assignments.Users));
         }
         
         return actionLabels;
@@ -82,12 +112,13 @@ public static class MermaidGenerator
             .Replace("-", "#45;");
     }
     
-    private static void GenerateStateDetails(StringBuilder sb, StateDefinition state, string name)
+    private static void GenerateStateDetails(StringBuilder sb, StateDefinition state, int stateIndex)
     {
-        sb.AppendLine($"state {name} {{");
-        var onEnterLabel = $"onEnter{Guid.NewGuid():N}";
+        
+        sb.AppendLine($"state state.{stateIndex} {{");
+        var onEnterLabel = $"OnEnter.{Guid.NewGuid():N}";
         sb.AppendLine(onEnterLabel + ": OnEnter");
-        var onExitLabel = $"onExit{Guid.NewGuid():N}";
+        var onExitLabel = $"OnExit.{Guid.NewGuid():N}";
         sb.AppendLine(onExitLabel + ": OnExit");
         // Add OnEnter actions
         if (state.OnEnterActions?.Count > 0)

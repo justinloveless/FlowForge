@@ -30,8 +30,9 @@ public class WebhookAction : WorkflowAction, IWorkflowAction
         
         var url = parameters["url"].ToString();
         if (string.IsNullOrEmpty(url)) return;
-        
-        var headersString = parameters.TryGetValue("headers", out var parameter) ? parameter.ToString() : "{}";
+
+        var headersExists = parameters.TryGetValue("headers", out var parameter);
+        var headersString = headersExists && parameter is not null ? parameter.ToString() : "{}";
         var headers = JsonSerializer.Deserialize<Dictionary<string, object>>(headersString);
 
         var updatedStateData = await webhookHandler.CallWebhookAsync(url, headers, instance);

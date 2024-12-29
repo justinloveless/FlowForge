@@ -3,26 +3,31 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace WorkflowEngine.Core;
 
-public class CustomBehaviorAction(string type, Func<WorkflowInstance,  IServiceProvider, Task> customBehavior)
-    : IWorkflowAction
+public class CustomBehaviorAction
+    : WorkflowAction, IWorkflowAction
 {
-    private Func<WorkflowInstance, IServiceProvider, Task> _customBehavior { get; } = customBehavior;
-    private string _type { get; } = type;
+    public CustomBehaviorAction(string type, Func<WorkflowInstance, IDictionary<string, object>, IServiceProvider, Task> customBehavior)
+    {
+        Type = type;
+        Parameters = new Dictionary<string, object>();
+        _customBehavior = customBehavior;
+    }
+    private Func<WorkflowInstance, IDictionary<string, object>, IServiceProvider, Task> _customBehavior { get; }
 
     public async Task ExecuteAsync(WorkflowInstance instance, IDictionary<string, object> parameters, IServiceProvider serviceProvider)
     {
         var eventLogger = serviceProvider.GetRequiredService<IEventLogger>();
         var eventRepository = serviceProvider.GetRequiredService<IEventRepository>();
-        _customBehavior(instance, serviceProvider);
+        _customBehavior(instance, parameters, serviceProvider);
         
         var eventLogDetails =
-            $"Custom behavior {_type} executed. State: {instance.CurrentState}, Parameters: {JsonSerializer.Serialize(parameters)}";
-        await eventLogger.LogEventAsync($"{_type}Executed", instance.Id, eventLogDetails);
+            $"Custom behavior {Type} executed. State: {instance.CurrentState}, Parameters: {JsonSerializer.Serialize(parameters)}";
+        await eventLogger.LogEventAsync($"{Type}Executed", instance.Id, eventLogDetails);
 
         await eventRepository.AddEventAsync(new WorkflowEvent
         {
             WorkflowInstanceId = instance.Id,
-            EventType = $"{_type}Executed",
+            EventType = $"{Type}Executed",
             CurrentState = instance.CurrentState,
             Details = eventLogDetails,
             Timestamp = DateTime.UtcNow

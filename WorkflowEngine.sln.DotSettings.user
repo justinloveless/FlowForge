@@ -20,16 +20,11 @@
     &lt;TestId&gt;xUnit::3B1DAA41-D242-414C-891B-00866D00BB73::net8.0::WorkflowEngine.Core.UnitTests.UnitTest1.ShouldThrowWithBadData&lt;/TestId&gt;
   &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=58c56b00_002Df81e_002D48fd_002Da74f_002Dc8e84271fcf4/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Continuous Testing" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;TestAncestor&gt;
-    &lt;TestId&gt;xUnit::3B1DAA41-D242-414C-891B-00866D00BB73::net8.0::WorkflowEngine.Core.UnitTests.UnitTest1.Test1&lt;/TestId&gt;
-    &lt;TestId&gt;xUnit::3B1DAA41-D242-414C-891B-00866D00BB73::net8.0::WorkflowEngine.Core.UnitTests.UnitTest1.ShouldThrowWithBadData&lt;/TestId&gt;
-    &lt;TestId&gt;xUnit::3B1DAA41-D242-414C-891B-00866D00BB73::net8.0::WorkflowEngine.Core.UnitTests.UnitTest1.ShouldRetrieveMissingVariables&lt;/TestId&gt;
-    &lt;TestId&gt;xUnit::3B1DAA41-D242-414C-891B-00866D00BB73::net8.0::WorkflowEngine.Core.UnitTests.UnitTest1.TestConditionWithHardcodedVariables&lt;/TestId&gt;
-    &lt;TestId&gt;xUnit::3B1DAA41-D242-414C-891B-00866D00BB73::net8.0::WorkflowEngine.Core.UnitTests.UnitTest1.TestConditionWithHardcodedVariables_THIS_FAILS&lt;/TestId&gt;
-    &lt;TestId&gt;xUnit::3B1DAA41-D242-414C-891B-00866D00BB73::net8.0::WorkflowEngine.Core.UnitTests.UnitTest1.TestConditionWithHardcodedVariables_THIS_PASSES&lt;/TestId&gt;
-    &lt;TestId&gt;xUnit::3B1DAA41-D242-414C-891B-00866D00BB73::net8.0::WorkflowEngine.Core.UnitTests.UnitTest1.TestJint&lt;/TestId&gt;
-  &lt;/TestAncestor&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=58c56b00_002Df81e_002D48fd_002Da74f_002Dc8e84271fcf4/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Continuous Testing" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::3B1DAA41-D242-414C-891B-00866D00BB73::net8.0::WorkflowEngine.Core.UnitTests.DefinitionBuilderTests.When_building_workflow_definition&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::3B1DAA41-D242-414C-891B-00866D00BB73::net8.0::WorkflowEngine.Core.UnitTests.DefinitionBuilderTests.When_building_workflow_definition_v2&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	
 	</wpf:ResourceDictionary>

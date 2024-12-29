@@ -7,7 +7,7 @@ public class WorkflowActionRegistry
     public void Register<TAction>(string type, Func<IDictionary<string, object>, TAction> factory)
     where TAction : IWorkflowAction
     {
-        _actions[type] = s => factory(s);
+        _actions[type] = parameters => factory(parameters);
     }
 
     internal IWorkflowAction Create(string type, IDictionary<string, object> parameters)

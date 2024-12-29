@@ -1,0 +1,11 @@
+﻿### GET request to example server
+POST {{baseurl}}/Webhook/register/predefined
+
+> {%
+    client.test("Got a success response", function() {
+        client.assert(response.status === 200)
+    });
+
+
+    client.global.set("workflowDefinitionId", response.body) %}
+###

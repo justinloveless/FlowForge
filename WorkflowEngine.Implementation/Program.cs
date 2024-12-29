@@ -28,13 +28,14 @@ public class Program
             },
             configureCustomActions: customActions =>
             {
-                customActions.Register( "Custom", parameters => 
-                    new CustomBehaviorAction("Custom", 
-                        async (instance, services) =>
+                customActions.Register( "Custom", _ => 
+                    new CustomBehaviorAction("Custom",
+                        async (instance, parameters, services) =>
                     {
                         Console.WriteLine($"MyBehavior executed for workflow {instance.Id}. Parameters: {JsonSerializer.Serialize(parameters)}");
                         await Task.CompletedTask;
                     }));
+                customActions.Register("MyCustomAction", _ => CustomActions.MyCustomAction);
             }
         )
             .UseAssignmentResolver<CustomAssignmentResolver>()

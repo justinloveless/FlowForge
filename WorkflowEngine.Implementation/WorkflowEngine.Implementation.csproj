@@ -27,4 +27,9 @@
       <_ContentIncludedByDefault Remove="SampleWorkflowDefinitions\SampleWorkflow.json" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="client_app\" />
+      <Folder Include="client_app\src\components\" />
+    </ItemGroup>
+
 </Project>

@@ -42,24 +42,24 @@ public class DefinitionBuilderTests
     {
         var definition = new WorkflowDefinitionBuilder("Sample Workflow")
             .Start(s => s
-                .OnEnter(new WebhookAction("http://example.com"))) // automatically create the Start state
+                .OnEnter(new WebhookAction("http://localhost:8080/webhook/test"))) // automatically create the Start state
             .Delay(TimeSpan.FromMinutes(12))
             .ActionableStep("UserStep", s => s // actionable steps should set IsIdle to true
                 .AssignUser("justin")
-                .OnEnter(new WebhookAction("http://notify.me"))
+                .OnEnter(new WebhookAction("http://localhost:8080/webhook/test"))
                 .Transition("event == \"Submit\"") // just goes to next state
-                .OnExit(new WebhookAction("http://something.com"))
+                .OnExit(new WebhookAction("http://localhost:8080/webhook/test"))
             )
             .ActionableStep("Approval", s => s
                 .AssignGroup("managers")
-                .OnEnter(new WebhookAction("http://notify.me"))    
+                .OnEnter(new WebhookAction("http://localhost:8080/webhook/test"))    
                 .Transition("event == \"Approved\"") // just goes to next state
                 .Transition("event == \"Declined\"", "UserStep")
             )
             .Schedule(new DateTime(2025,01,01))
             .ActionableStep("RenewLicense", s => s
                 .AssignUser("justin")
-                .OnEnter(new WebhookAction("http://notify.me"))
+                .OnEnter(new WebhookAction("http://localhost:8080/webhook/test"))
                 .Transition("event == \"Submit\"")
             )
             .ActionableStep("ApproveLicenseRenewal", s => s
@@ -67,7 +67,7 @@ public class DefinitionBuilderTests
                 .Transition("event == \"Declined\"", "RenewLicense")
             )
             .End(s => s
-                .OnEnter(new WebhookAction("http://notify.me"))
+                .OnEnter(new WebhookAction("http://localhost:8080/webhook/test"))
             ); // automatically create the End state and then build
         
         var json = definition.ToJson();
@@ -77,7 +77,7 @@ public class DefinitionBuilderTests
         definition.States[0].Name.Should().Be("Start");
         definition.States[0].OnEnterActions.Count.Should().Be(1);
         definition.States[0].OnEnterActions[0].Type.Should().Be("Webhook");
-        definition.States[0].OnEnterActions[0].Parameters["url"].Should().Be("http://example.com");
+        definition.States[0].OnEnterActions[0].Parameters["url"].Should().Be("http://localhost:8080/webhook/test");
         definition.States[0].Transitions.Count.Should().Be(1);
         definition.States[1].Transitions[0].NextState.Should().Be("UserStep");
         definition.States[2].Transitions[0].NextState.Should().Be("Approval");

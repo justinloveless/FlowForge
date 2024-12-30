@@ -42,6 +42,16 @@ public class Program
             .UsePostgresql("Host=postgres;Database=workflow;Username=postgres;Password=password")
             .UseRabbitMQ("rabbitmq", "workflow-queue");
 
+        builder.Services.AddCors(option =>
+        {
+            option.AddPolicy("AllowClientApp", policy =>
+            {
+                policy.WithOrigins("http://localhost:3000")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+            });
+        });
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -53,6 +63,7 @@ public class Program
 
         app.UseHttpsRedirection();
 
+        app.UseCors("AllowClientApp");
         app.UseAuthorization();
 
 

@@ -24,6 +24,7 @@
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;xUnit::3B1DAA41-D242-414C-891B-00866D00BB73::net8.0::WorkflowEngine.Core.UnitTests.DefinitionBuilderTests.When_building_workflow_definition&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::3B1DAA41-D242-414C-891B-00866D00BB73::net8.0::WorkflowEngine.Core.UnitTests.DefinitionBuilderTests.When_building_workflow_definition_v2&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::3B1DAA41-D242-414C-891B-00866D00BB73::net8.0::WorkflowEngine.Core.UnitTests.MermaidGeneratorTests.When_generating_mermaid_diagram&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	

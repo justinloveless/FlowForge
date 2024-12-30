@@ -12,55 +12,81 @@ public static class MermaidGenerator
         var labels = GenerateStateNameLabels(workflowDefinition);
         if (showDetails)
         {
-            for (var index = 0; index < workflowDefinition.States.Count; index++)
-            {
-                var state = workflowDefinition.States[index];
-                var actionLabels = GenerateActionLabels(state, index);
-                foreach (var kvp in actionLabels)
-                {
-                    labels.Add(kvp.Key, kvp.Value);
-                }
-                
-            }
-
-            for (var index = 0; index < workflowDefinition.States.Count; index++)
-            {
-                var state = workflowDefinition.States[index];
-                GenerateStateDetails(sb, state, index);
-                
-            }
-            
+            GeneratorAllActionLabels(workflowDefinition, labels);
+            AppendDetailedStateInfo(workflowDefinition, labels, sb);
         }
 
+        AppendStateTransitions(workflowDefinition, sb, labels);
+
+        AppendEndState(workflowDefinition, sb);
+
+        AppendStateLabels(sb, labels);
+        return sb.ToString();
+    }
+
+    private static void AppendDetailedStateInfo(WorkflowDefinition workflowDefinition, Dictionary<string, string> labels, StringBuilder sb)
+    {
+        for (var index = 0; index < workflowDefinition.States.Count; index++)
+        {
+            var state = workflowDefinition.States[index];
+            GenerateStateDetails(sb, state, index);
+        }
+    }
+
+    private static void GeneratorAllActionLabels(WorkflowDefinition workflowDefinition, Dictionary<string, string> labels)
+    {
+        for (var index = 0; index < workflowDefinition.States.Count; index++)
+        {
+            var state = workflowDefinition.States[index];
+            var actionLabels = GenerateActionLabels(state, index);
+            foreach (var kvp in actionLabels)
+            {
+                labels.Add(kvp.Key, kvp.Value);
+            }
+                
+        }
+    }
+
+    private static void AppendStateTransitions(WorkflowDefinition workflowDefinition, StringBuilder sb, Dictionary<string, string> labels)
+    {
         var indexOfInitialState = workflowDefinition.States.FindIndex(s => s.Name == workflowDefinition.InitialState);
-        sb.AppendLine($"\n[*] --> state.{indexOfInitialState}");
+        sb.AppendLine($"\n[*] --> StateLbl_{indexOfInitialState}");
 
         for (var index = 0; index < workflowDefinition.States.Count; index++)
         {
             var state = workflowDefinition.States[index];
-            var name = labels[$"state.{index}"];
             foreach (var transition in state.Transitions)
             {
-                var condition = IsDelayAction(workflowDefinition, state.Name)
-                    ? GetDelayCondition(workflowDefinition, state.Name)
-                    : IsScheduleAction(workflowDefinition, state.Name)
-                        ? GetScheduleCondition(workflowDefinition, state.Name)
-                        : transition.Condition;
+                var condition = GetTransitionCondition(workflowDefinition, state.Name, transition.Condition);
                 var indexOfNextState = workflowDefinition.States.FindIndex(s => s.Name == transition.NextState);
-                
-                sb.AppendLine($"state.{index} --> state.{indexOfNextState} : {condition}");
+                sb.AppendLine($"StateLbl_{index} --> StateLbl_{indexOfNextState} : {condition}");
             }
 
         }
+    }
 
+    private static string GetTransitionCondition(WorkflowDefinition workflowDefinition, string stateName, string defaultCondition)
+    {
+        return IsDelayAction(workflowDefinition, stateName)
+            ? GetDelayCondition(workflowDefinition, stateName)
+            : IsScheduleAction(workflowDefinition, stateName)
+                ? GetScheduleCondition(workflowDefinition, stateName)
+                : defaultCondition;
+    }
+
+    private static void AppendEndState(WorkflowDefinition workflowDefinition, StringBuilder sb)
+    {
         var indexOfEndState = workflowDefinition.States.FindIndex(s => s.Name == "End");
-        sb.AppendLine($"state.{indexOfEndState} --> [*]\n");
-        
-        foreach (var kvp in labels)
+        sb.AppendLine($"StateLbl_{indexOfEndState} --> [*]\n");
+    }
+
+    private static void AppendStateLabels(StringBuilder sb, Dictionary<string, string> labels)
+    {
+        var diagramBeforeAddingLabels = sb.ToString();
+        foreach (var kvp in labels.Where(kvp => diagramBeforeAddingLabels.Contains(kvp.Key)))
         {
             sb.AppendLine($"{kvp.Key}: {kvp.Value}");
         }
-        return sb.ToString();
     }
 
     private static Dictionary<string, string> GenerateStateNameLabels(WorkflowDefinition workflowDefinition)
@@ -72,36 +98,38 @@ public static class MermaidGenerator
             var name = IsDelayAction(workflowDefinition, state.Name) ? "Delay"
                 : IsScheduleAction(workflowDefinition, state.Name) ? "Schedule"
                 : state.Name;
-            var nameLabel = $"state.{index}";
+            var nameLabel = $"StateLbl_{index}";
             stateNameLabels.Add(nameLabel, name);
         }
         return stateNameLabels;
     }
 
-    private static Dictionary<string, string> GenerateActionLabels(StateDefinition stateDefinition, int stateIndex)
+    private static Dictionary<string, string> GenerateActionLabels(StateDefinition state, int stateIndex)
     {
-        var actionLabels = new Dictionary<string, string>();
-        actionLabels.Add($"OnEnter.{stateIndex}", "OnEnter");
-        actionLabels.Add($"OnExit.{stateIndex}", "OnExit");
-        for (int actionIndex = 0; actionIndex < stateDefinition.OnEnterActions.Count; actionIndex++)
+        var actionLabels = new Dictionary<string, string>()
         {
-            foreach (var parameter in stateDefinition.OnEnterActions[actionIndex].Parameters)
-            {
-                actionLabels.Add($"OnEnterAction.{stateIndex}.{actionIndex}.{parameter.Key.Sanitize()}",
-                    parameter.Key.Sanitize() + "#58;#32;" + parameter.Value?.ToString()?.Sanitize());
-            }
-            foreach (var parameter in stateDefinition.OnExitActions[actionIndex].Parameters)
-            {
-                actionLabels.Add($"OnExitAction.{stateIndex}.{actionIndex}.{parameter.Key.Sanitize()}", 
-                    parameter.Key.Sanitize() + "#58;#32;" + parameter.Value?.ToString()?.Sanitize());
-            }
-            actionLabels.Add($"Assignments.{stateIndex}.{actionIndex}.Groups", 
-                "Groups#58;#32;" + string.Join(", ", stateDefinition.Assignments.Groups));
-            actionLabels.Add($"Assignments.{stateIndex}.{actionIndex}.Users", 
-                "Users#58;#32;" + string.Join(", ", stateDefinition.Assignments.Users));
-        }
-        
+            [$"OnEnter_{stateIndex}"] = "OnEnter",
+            [$"OnExit_{stateIndex}"] = "OnExit",
+            [$"Assignments_{stateIndex}"] = "Assignments",
+            [$"Assignments_{stateIndex}_Groups"] = $"Groups#58;#32;{string.Join(",#32;", state.Assignments.Groups.Select(g => g.Sanitize()))}",
+            [$"Assignments_{stateIndex}_Users"] = $"Users#58;#32;{string.Join(",#32;", state.Assignments.Users.Select(u => u.Sanitize()))}"
+        };
+        AppendActionDetailLabels(actionLabels, state.OnEnterActions, $"OnEnterAction_{stateIndex}");
+        AppendActionDetailLabels(actionLabels, state.OnExitActions, $"OnExitAction_{stateIndex}");
         return actionLabels;
+    }
+
+    private static void AppendActionDetailLabels(Dictionary<string, string> labels, List<WorkflowAction> actions,
+        string baseLabel)
+    {
+        for (var actionIndex = 0; actionIndex < actions.Count; actionIndex++)
+        {
+            foreach (var parameter in actions[actionIndex].Parameters)
+            {
+                labels.Add($"{baseLabel}_{actionIndex}_{parameter.Key.Sanitize()}",
+                    parameter.Key.Sanitize() + "#58;#32;" + parameter.Value?.ToString()?.Sanitize());
+            }
+        }
     }
 
     private static string Sanitize(this string input)
@@ -115,68 +143,66 @@ public static class MermaidGenerator
     private static void GenerateStateDetails(StringBuilder sb, StateDefinition state, int stateIndex)
     {
         
-        sb.AppendLine($"state state.{stateIndex} {{");
-        var onEnterLabel = $"OnEnter.{Guid.NewGuid():N}";
-        sb.AppendLine(onEnterLabel + ": OnEnter");
-        var onExitLabel = $"OnExit.{Guid.NewGuid():N}";
-        sb.AppendLine(onExitLabel + ": OnExit");
-        // Add OnEnter actions
-        if (state.OnEnterActions?.Count > 0)
-        {
-            sb.AppendLine($"    [*] --> {onEnterLabel}");
-            sb.AppendLine($"    state {onEnterLabel} {{");
-            sb.AppendLine("        direction LR");
-            
-            foreach (var action in state.OnEnterActions)
-            {
-                sb.AppendLine($"            {FormatAction(action)}");
-            }
-            sb.AppendLine("        }");
-        }
-        
-        // Add OnExit actions
-        if (state.OnExitActions?.Count > 0)
-        {
-            if (state.OnEnterActions?.Count > 0)
-            {
-                sb.AppendLine($"        {onEnterLabel} --> {onExitLabel}");
-            }
-            sb.AppendLine($"        state {onExitLabel} {{");
-            sb.AppendLine("            direction LR");
-            for (var index = 0; index < state.OnExitActions.Count; index++)
-            {
-                if (index > 0)
-                {
-                    sb.AppendLine($"            --");    
-                }
-                var action = state.OnExitActions[index];
-                sb.AppendLine($"            {FormatAction(action)}");
-            }
+        sb.AppendLine($"state StateLbl_{stateIndex} {{");
+        AppendAssignments(sb, state, stateIndex);
 
-            sb.AppendLine("        }");
-        }
-        
-        // Add transitions between OnEnter and OnExit
-        if (state.OnEnterActions?.Count > 0 && state.OnExitActions?.Count > 0)
-        {
-            sb.AppendLine($"        {onExitLabel} --> [*]");
-        }
+        var previousNode = "[*]";
+        previousNode = AppendStateActions(sb, "OnEnter", state.OnEnterActions, stateIndex, previousNode);
+        previousNode = AppendStateActions(sb, "OnExit", state.OnExitActions, stateIndex, previousNode);
 
-        sb.AppendLine("    }");
+        sb.AppendLine($$"""
+                       {{previousNode}} --> [*]
+                       }
+                       """);
     }
-    
-    private static string FormatAction(WorkflowAction action)
+
+    private static string AppendStateActions(StringBuilder sb, string actionType, List<WorkflowAction> actions, int stateIndex, string previousNode)
+    {
+        if (!(actions?.Count > 0)) return previousNode;
+        
+        sb.AppendLine($$"""
+                        {{previousNode}} --> {{actionType}}_{{stateIndex}}
+                        state {{actionType}}_{{stateIndex}} {
+                            direction LR
+                        """);
+
+        for (var index = 0; index < actions.Count; index++)
+        {
+            var action = actions[index];
+            sb.AppendLine($"            {FormatAction(action, $"{actionType}Action_{stateIndex}_{index}")}");
+        }
+        sb.AppendLine("        }");
+        previousNode = $"{actionType}_{stateIndex}";
+        return previousNode;
+    }
+
+    private static void AppendAssignments(StringBuilder sb, StateDefinition state, int stateIndex)
+    {
+        var useSeparator = false;
+        // Add Assignments
+        if (state.Assignments.Groups.Count > 0 || state.Assignments.Users.Count > 0)
+        {
+            sb.AppendLine($$"""
+                            Assignments_{{stateIndex}}
+                            state Assignments_{{stateIndex}} {
+                                direction LR
+                            """);
+            if (state.Assignments.Groups.Count > 0)
+                sb.AppendLine($"Assignments_{stateIndex}_Groups");
+            if (state.Assignments.Users.Count > 0)
+                sb.AppendLine($"Assignments_{stateIndex}_Users");
+            sb.AppendLine("}");
+            useSeparator = true;
+        }
+
+        if (useSeparator)
+            sb.AppendLine("--");
+    }
+
+    private static string FormatAction(WorkflowAction action, string label)
     {
         
-        return string.Join("\n", action.Parameters.Select(kvp =>
-        {
-            var label = "p" + Guid.NewGuid().ToString("N");
-            return $"{label}: " +kvp.Key + "#58;#32;" + kvp.Value?.ToString()?
-                .Replace(":", "#58;")
-                .Replace(" ", "#32;")
-                .Replace("-", "#45;")
-                + $"\n{label} ";
-        }));
+        return string.Join("\n", action.Parameters.Select(kvp => $"{label}_" +kvp.Key));
     }
     
     private static string GetScheduleCondition(WorkflowDefinition workflowDefinition, string name) =>

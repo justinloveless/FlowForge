@@ -1,0 +1,44 @@
+﻿name: Publish Nuget Packages
+
+on:
+  push:
+    branches:
+      - main
+        
+        
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0'
+          
+      - name: Restore dependencies
+        run: dotnet restore
+        
+      - name: Determine changed projects
+        id: changes
+        run: |
+          # List all changed files and filter directories starting with 'FlowForge'
+          git diff-tree --no-commit-id --name-only -r HEAD^..HEAD | \
+          grep '^FlowForge' | awk -F'/' '{print $1}' | sort | uniq > changed_projects.txt
+          echo "::set-output name=projects::$(cat changed_projects.txt | tr '\n' ',')"     
+      
+      - name: Publish changed projects
+        if: steps.changes.outputs.projects != ''
+        run: |
+          for project in $(echo "${{ steps.changes.outputs.projects }}" | tr ',' '\n'); do
+            echo "Publishing $project"
+            cd $project
+            dotnet pack -o ./output --configuration Release
+            for nupkg in ./output/*.nupkg; do
+              dotnet nuget push "$nupkg" --api-key ${{ secrets.NUGETAPIKEY }} --source https://api.nuget.org/v3/index.json
+            done
+            cd -
+          done

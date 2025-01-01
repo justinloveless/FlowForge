@@ -47,8 +47,10 @@ jobs:
           for project in $(echo "$projects" | tr ',' '\n'); do
             echo "Publishing $project"
             cd $project
+            # Clean the working directory for the current project
+            git clean -fdx
             # Ensure version is updated based on Git history
-            nbgv prepare-release
+            nbgv prepare-release --no-branch-creation
             # Build the project
             dotnet build --configuration Release
             # Pack the project with output to a temporary directory

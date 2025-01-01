@@ -48,6 +48,12 @@ jobs:
           for project in $(echo "$projects" | tr ',' '\n'); do
             echo "Publishing $project"
             cd $project
+            # Check if version.json exists
+            if [ ! -f version.json ]; then
+              echo "Skipping $project: No version.json found."
+              cd -
+              continue
+            fi
             # Extract version directly from version.json
             version=$(jq -r '.version' version.json)
             echo "Resolved version: $version"

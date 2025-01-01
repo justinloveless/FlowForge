@@ -337,9 +337,4 @@ internal class WorkflowEngine(
     }
 
 
-    private static void DoNothing()
-    {
-        
-    }
-
 }

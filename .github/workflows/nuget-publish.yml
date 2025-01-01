@@ -50,7 +50,7 @@ jobs:
             # Clean the working directory for the current project
             git clean -fdx
             # Ensure version is updated based on Git history
-            nbgv prepare-release --no-branch-creation
+            nbgv prepare-release
             # Build the project
             dotnet build --configuration Release
             # Pack the project with output to a temporary directory

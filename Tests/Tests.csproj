@@ -24,6 +24,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\WorkflowEngine.Core\WorkflowEngine.Core.csproj" />
+      <ProjectReference Include="..\WorkflowEngine.Mermaid\WorkflowEngine.Mermaid.csproj" />
     </ItemGroup>
 
 </Project>

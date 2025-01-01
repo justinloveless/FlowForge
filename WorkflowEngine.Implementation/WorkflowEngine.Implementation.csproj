@@ -19,6 +19,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\WorkflowEngine.Core\WorkflowEngine.Core.csproj" />
+      <ProjectReference Include="..\WorkflowEngine.Mermaid\WorkflowEngine.Mermaid.csproj" />
       <ProjectReference Include="..\WorkflowEngine.Postgresql\WorkflowEngine.Postgresql.csproj" />
       <ProjectReference Include="..\WorkflowEngine.RabbitMQ\WorkflowEngine.RabbitMQ.csproj" />
     </ItemGroup>

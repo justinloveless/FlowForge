@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WorkflowEngine.Core;
+using WorkflowEngine.Mermaid;
 
 namespace WorkflowEngine.Implementation.Controllers;
 

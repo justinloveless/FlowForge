@@ -51,11 +51,17 @@ jobs:
             nbgv prepare-release
             # Build the project
             dotnet build --configuration Release
-            dotnet pack -o ./output --configuration Release
-            for nupkg in ./output/*.nupkg; do
+            # Pack the project with output to a temporary directory
+            OUTPUT_DIR=/tmp/output
+            mkdir -p $OUTPUT_DIR
+            dotnet pack -o $OUTPUT_DIR --configuration Release
+            for nupkg in $OUTPUT_DIR/*.nupkg; do
               dotnet nuget push "$nupkg" --api-key ${{ secrets.NUGETAPIKEY }} --source https://api.nuget.org/v3/index.json
             done
             cd -
           done
         env:
           projects: ${{ env.projects }}
+          
+      - name: Clean working directory
+        run: git clean -fdx

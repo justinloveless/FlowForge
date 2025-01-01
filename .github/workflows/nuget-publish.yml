@@ -37,12 +37,15 @@ jobs:
         run: |
           # Determine the merge base
           merge_base=$(git merge-base HEAD origin/main || echo "")
+          echo "got merge_base"
+          echo merge_base
           
           if [ -z "$merge_base" ]; then
           echo "No merge base found. Skipping project detection."
           echo "" > changed_projects.txt
           else
           # Get a list of changed files between the merge base and HEAD
+          echo "Getting git diff"
           git diff --name-only $merge_base HEAD | \
           grep '^FlowForge' | awk -F'/' '{print $1}' | sort | uniq > changed_projects.txt
           fi

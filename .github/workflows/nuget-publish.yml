@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
@@ -17,49 +20,11 @@ jobs:
           ref: main
           fetch-tags: true
           
-      - name: Fetch main branch
-        run: git fetch origin main:refs/remotes/origin/main
-
       - name: Configure Git user
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
         
-      - name: Debug Git state
-        run: |
-         echo "Current branch: $(git branch --show-current)"
-         echo "HEAD: $(git rev-parse HEAD)"
-         git branch -r
-         git log --oneline --graph --decorate --all -n 10
-      
-      - name: Determine changed projects
-        id: changes
-        run: |
-          # Determine the merge base
-          merge_base=$(git merge-base HEAD origin/main || echo "")
-          echo "got merge_base"
-          echo $merge_base
-          
-          if [ -z "$merge_base" ]; then
-          echo "No merge base found. Skipping project detection."
-          echo "" > changed_projects.txt
-          else
-          # Get a list of changed files between the merge base and HEAD
-          echo "Getting git diff"
-          # Redirect git diff output to prevent errors on no changes
-          git diff --name-only $merge_base HEAD > diff_output.txt || true
-          echo "diff_output:"
-          cat diff_output.txt
-          # Filter changes and detect unique projects
-          grep '^FlowForge' diff_output.txt | awk -F'/' '{print $1}' | sort | uniq > changed_projects.txt
-          fi
-          
-          # Export the list of projects as a comma-separated environment variable
-          echo "Projects found:"
-          cat changed_projects.txt
-          echo "projects=$(cat changed_projects.txt | tr '\n' ',')" >> $GITHUB_ENV
-        shell: bash
-      
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
@@ -68,30 +33,33 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
 
+      - name: Discover FlowForge projects
+        id: discover_projects
+        run: |
+          # Find all directories starting with 'FlowForge'
+          find . -type d -name "FlowForge*" -maxdepth 1 | sed 's|^\./||' > projects.txt
+          echo "Discovered projects:"
+          cat projects.txt
+          # Export the list of projects as a comma-separated environment variable
+          echo "projects=$(cat projects.txt | tr '\n' ',')" >> $GITHUB_ENV
 
-      - name: Publish changed projects
-        if: env.projects != ''
+      - name: Publish all FlowForge projects
         run: |
           for project in $(echo "$projects" | tr ',' '\n'); do
             echo "Publishing $project"
             cd $project
-            # Clean the working directory for the current project
-            git clean -fdx
-            # Ensure version is updated based on Git history
-            nbgv prepare-release
+            # Extract version directly from version.json
+            version=$(jq -r '.version' version.json)
+            echo "Resolved version: $version"
             # Build the project
             dotnet build --configuration Release
-            # Pack the project with output to a temporary directory
-            OUTPUT_DIR=/tmp/output
+            # Pack the project with the extracted version
+            OUTPUT_DIR=/tmp/$project-output
             mkdir -p $OUTPUT_DIR
-            dotnet pack -o $OUTPUT_DIR --configuration Release
+            dotnet pack -o $OUTPUT_DIR --configuration Release /p:Version=$version
+            # Push the package and skip duplicates
             for nupkg in $OUTPUT_DIR/*.nupkg; do
               dotnet nuget push "$nupkg" --api-key ${{ secrets.NUGETAPIKEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
             done
             cd -
           done
-        env:
-          projects: ${{ env.projects }}
-          
-      - name: Clean working directory
-        run: git clean -fdx

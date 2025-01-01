@@ -6,67 +6,70 @@ on:
       - main
 
 jobs:
-  publish:
+  discover-projects:
     runs-on: ubuntu-latest
-
+    outputs:
+      project_list: ${{ steps.set-output.outputs.project_list }}
     steps:
-      - name: Install jq
-        run: sudo apt-get install -y jq
-
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # Fetch the full Git history
-          ref: main
-          fetch-tags: true
-          
+          fetch-depth: 0
+
+      - name: Discover FlowForge projects
+        id: set-output
+        run: |
+          # Find all directories starting with 'FlowForge'
+          projects=$(find . -type d -name "FlowForge*" -maxdepth 1 | sed 's|^\./||')
+          echo "Discovered projects: $projects"
+          echo "::set-output name=project_list::$(echo $projects | tr '\n' ',')"
+    
+  publish:
+    needs: discover-projects
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.discover-projects.outputs.project_list) }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
       - name: Configure Git user
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0'
 
-      - name: Restore dependencies
-        run: dotnet restore
+      - name: Install dependencies
+        run: sudo apt-get install -y jq libxml2-utils
 
-      - name: Discover FlowForge projects
-        id: discover_projects
+      - name: Publish project
         run: |
-          # Find all directories starting with 'FlowForge'
-          find . -type d -name "FlowForge*" -maxdepth 1 | sed 's|^\./||' > projects.txt
-          echo "Discovered projects:"
-          cat projects.txt
-          # Export the list of projects as a comma-separated environment variable
-          echo "projects=$(cat projects.txt | tr '\n' ',')" >> $GITHUB_ENV
-
-      - name: Publish all FlowForge projects
-        run: |
-          for project in $(echo "$projects" | tr ',' '\n'); do
-            echo "Publishing $project"
-            cd $project
-            # Check if version.json exists
-            if [ ! -f version.json ]; then
-              echo "Skipping $project: No version.json found."
-              cd -
-              continue
-            fi
-            # Extract version directly from version.json
-            version=$(jq -r '.version' version.json)
-            echo "Resolved version: $version"
-            # Build the project
-            dotnet build --configuration Release
-            # Pack the project with the extracted version
-            OUTPUT_DIR=/tmp/$project-output
-            mkdir -p $OUTPUT_DIR
-            dotnet pack -o $OUTPUT_DIR --configuration Release /p:Version=$version
-            # Push the package and skip duplicates
-            for nupkg in $OUTPUT_DIR/*.nupkg; do
-              dotnet nuget push "$nupkg" --api-key ${{ secrets.NUGETAPIKEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-            done
-            cd -
+          echo "Processing project: ${{ matrix.project }}"
+          cd ${{ matrix.project }}
+          # Check if version.json exists
+          if [ ! -f version.json ]; then
+            echo "Skipping ${{ matrix.project }}: No version.json found."
+            exit 0
+          fi
+          # Extract version from version.json
+          version=$(jq -r '.version' version.json)
+          echo "Resolved version for ${{ matrix.project }}: $version"
+          # Build the project
+          dotnet build --configuration Release
+          # Pack the project with the extracted version
+          OUTPUT_DIR=/tmp/${{ matrix.project }}-output
+          mkdir -p $OUTPUT_DIR
+          dotnet pack -o $OUTPUT_DIR --configuration Release /p:Version=$version
+          # Push the package and skip duplicates
+          for nupkg in $OUTPUT_DIR/*.nupkg; do
+            echo "Publishing package: $nupkg"
+            dotnet nuget push "$nupkg" --api-key ${{ secrets.NUGETAPIKEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
           done
-          

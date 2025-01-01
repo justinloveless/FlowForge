@@ -38,7 +38,7 @@ jobs:
           # Determine the merge base
           merge_base=$(git merge-base HEAD origin/main || echo "")
           echo "got merge_base"
-          echo merge_base
+          echo $merge_base
           
           if [ -z "$merge_base" ]; then
           echo "No merge base found. Skipping project detection."

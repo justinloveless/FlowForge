@@ -1,39 +1,40 @@
-﻿name: Publish Nuget Packages
+﻿name: Publish NuGet Packages
 
 on:
   push:
     branches:
       - main
-        
-        
+
 jobs:
   publish:
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Install Nerdbank.GitVersioning
-        run: dotnet tool install -g nbgv
-      
       - name: Checkout repository
         uses: actions/checkout@v3
-        
+        with:
+          fetch-depth: 0 # Fetch the full Git history
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0'
-          
+
       - name: Restore dependencies
         run: dotnet restore
-        
+
       - name: Determine changed projects
         id: changes
         run: |
-          # List all changed files and filter directories starting with 'FlowForge'
-          git diff-tree --no-commit-id --name-only -r $(git rev-parse --verify HEAD~1 || echo $(git rev-list --max-parents=0 HEAD)) HEAD | \
-          grep '^FlowForge' | awk -F'/' '{print $1}' | sort | uniq > changed_projects.txt
+          if git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
+            git diff-tree --no-commit-id --name-only -r HEAD~1 HEAD | \
+            grep '^FlowForge' | awk -F'/' '{print $1}' | sort | uniq > changed_projects.txt
+          else
+            echo "No previous commits or a new branch. Skipping changed project detection."
+            echo "" > changed_projects.txt
+          fi
           echo "projects=$(cat changed_projects.txt | tr '\n' ',')" >> $GITHUB_ENV
         shell: bash
-
 
       - name: Publish changed projects
         if: env.projects != ''
@@ -49,4 +50,3 @@ jobs:
           done
         env:
           projects: ${{ env.projects }}
-      

@@ -336,10 +336,4 @@ internal class WorkflowEngine(
         return false; // Not JSON
     }
 
-
-    private static void DoNothing()
-    {
-        
-    }
-
 }

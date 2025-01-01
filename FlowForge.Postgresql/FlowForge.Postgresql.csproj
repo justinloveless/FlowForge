@@ -24,6 +24,7 @@
       </PackageReference>
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2" />
+      <PackageReference Remove="Nerdbank.GitVersioning" />
     </ItemGroup>
 
 </Project>

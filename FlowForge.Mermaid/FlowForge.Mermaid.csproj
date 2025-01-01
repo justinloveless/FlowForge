@@ -24,4 +24,8 @@
       <ProjectReference Include="..\FlowForge\FlowForge.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Remove="Nerdbank.GitVersioning" />
+    </ItemGroup>
+
 </Project>

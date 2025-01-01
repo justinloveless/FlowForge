@@ -9,6 +9,7 @@
 
     <ItemGroup>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
+        <PackageReference Remove="Nerdbank.GitVersioning" />
     </ItemGroup>
 
     <ItemGroup>

@@ -58,7 +58,7 @@ jobs:
             mkdir -p $OUTPUT_DIR
             dotnet pack -o $OUTPUT_DIR --configuration Release
             for nupkg in $OUTPUT_DIR/*.nupkg; do
-              dotnet nuget push "$nupkg" --api-key ${{ secrets.NUGETAPIKEY }} --source https://api.nuget.org/v3/index.json
+              dotnet nuget push "$nupkg" --api-key ${{ secrets.NUGETAPIKEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
             done
             cd -
           done

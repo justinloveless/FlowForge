@@ -9,7 +9,7 @@ jobs:
   discover-projects:
     runs-on: ubuntu-latest
     outputs:
-      project_list: ${{ steps.set-output.outputs.project_list }}
+      project_list: ${{ steps.discover.outputs.project_list }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -17,15 +17,24 @@ jobs:
           fetch-depth: 0
 
       - name: Discover FlowForge projects
-        id: set-output
+        id: discover
         run: |
           # Find all directories starting with 'FlowForge'
           projects=$(find . -type d -name "FlowForge*" -maxdepth 1 | sed 's|^\./||')
-          # Convert to JSON array format
-          project_json=$(echo "$projects" | jq -R . | jq -s .)
+          if [ -z "$projects" ]; then
+            # No projects found, return an empty JSON array
+            project_json="[]"
+          else
+            # Convert the list of projects to a JSON array
+            project_json=$(echo "$projects" | jq -R . | jq -s .)
+          fi
           echo "Discovered projects: $project_json"
-          echo "::set-output name=project_list::$project_json"
-    
+          echo "project_list=$project_json" >> $GITHUB_OUTPUT
+      - name: Debug project list
+        run: |
+          echo "Project list: ${{ needs.discover-projects.outputs.project_list }}"
+  
+  
   publish:
     needs: discover-projects
     runs-on: ubuntu-latest

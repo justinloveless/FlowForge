@@ -33,6 +33,7 @@ public class FlowForge(
     public async Task<IEnumerable<string>> GetAssignedActorsAsync(string stateName, WorkflowInstanceId workflowInstanceId) =>
         await assignmentResolver.GetAssignmentsAsync(stateName, workflowInstanceId);
 
+    public bool DummyChange() => true;
 
 
 }

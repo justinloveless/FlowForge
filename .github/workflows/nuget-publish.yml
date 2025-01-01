@@ -46,11 +46,17 @@ jobs:
           else
           # Get a list of changed files between the merge base and HEAD
           echo "Getting git diff"
-          git diff --name-only $merge_base HEAD | \
-          grep '^FlowForge' | awk -F'/' '{print $1}' | sort | uniq > changed_projects.txt
+          # Redirect git diff output to prevent errors on no changes
+          git diff --name-only $merge_base HEAD > diff_output.txt || true
+          echo "diff_output:"
+          cat diff_output.txt
+          # Filter changes and detect unique projects
+          grep '^FlowForge' diff_output.txt | awk -F'/' '{print $1}' | sort | uniq > changed_projects.txt
           fi
           
           # Export the list of projects as a comma-separated environment variable
+          echo "Projects found:"
+          cat changed_projects.txt
           echo "projects=$(cat changed_projects.txt | tr '\n' ',')" >> $GITHUB_ENV
         shell: bash
       

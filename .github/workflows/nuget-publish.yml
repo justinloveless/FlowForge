@@ -14,12 +14,43 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Fetch the full Git history
+          ref: main
+          fetch-tags: true
           
+      - name: Fetch main branch
+        run: git fetch origin main:refs/remotes/origin/main
+
       - name: Configure Git user
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
+        
+      - name: Debug Git state
+        run: |
+         echo "Current branch: $(git branch --show-current)"
+         echo "HEAD: $(git rev-parse HEAD)"
+         git branch -r
+         git log --oneline --graph --decorate --all -n 10
+      
+      - name: Determine changed projects
+        id: changes
+        run: |
+          # Determine the merge base
+          merge_base=$(git merge-base HEAD origin/main || echo "")
+          
+          if [ -z "$merge_base" ]; then
+          echo "No merge base found. Skipping project detection."
+          echo "" > changed_projects.txt
+          else
+          # Get a list of changed files between the merge base and HEAD
+          git diff --name-only $merge_base HEAD | \
+          grep '^FlowForge' | awk -F'/' '{print $1}' | sort | uniq > changed_projects.txt
+          fi
+          
+          # Export the list of projects as a comma-separated environment variable
+          echo "projects=$(cat changed_projects.txt | tr '\n' ',')" >> $GITHUB_ENV
+        shell: bash
+      
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
@@ -28,25 +59,6 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
 
-      - name: Determine changed projects
-        id: changes
-        run: |
-          # Determine the merge base to find all changes in the branch
-          merge_base=$(git merge-base HEAD origin/main)
-          
-          # Get a list of changed files between the merge base and HEAD
-          git diff --name-only $merge_base HEAD | \
-          grep '^FlowForge' | awk -F'/' '{print $1}' | sort | uniq > changed_projects.txt
-          
-          # If no changes were found, set an empty list
-          if [[ ! -s changed_projects.txt ]]; then
-            echo "No changes detected in projects."
-            echo "" > changed_projects.txt
-          fi
-          
-          # Export the list of projects as a comma-separated environment variable
-          echo "projects=$(cat changed_projects.txt | tr '\n' ',')" >> $GITHUB_ENV
-        shell: bash
 
       - name: Publish changed projects
         if: env.projects != ''

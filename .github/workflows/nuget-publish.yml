@@ -31,13 +31,20 @@ jobs:
       - name: Determine changed projects
         id: changes
         run: |
-          if git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
-            git diff-tree --no-commit-id --name-only -r HEAD~1 HEAD | \
-            grep '^FlowForge' | awk -F'/' '{print $1}' | sort | uniq > changed_projects.txt
-          else
-            echo "No previous commits or a new branch. Skipping changed project detection."
+          # Determine the merge base to find all changes in the branch
+          merge_base=$(git merge-base HEAD origin/main)
+          
+          # Get a list of changed files between the merge base and HEAD
+          git diff --name-only $merge_base HEAD | \
+          grep '^FlowForge' | awk -F'/' '{print $1}' | sort | uniq > changed_projects.txt
+          
+          # If no changes were found, set an empty list
+          if [[ ! -s changed_projects.txt ]]; then
+            echo "No changes detected in projects."
             echo "" > changed_projects.txt
           fi
+          
+          # Export the list of projects as a comma-separated environment variable
           echo "projects=$(cat changed_projects.txt | tr '\n' ',')" >> $GITHUB_ENV
         shell: bash
 

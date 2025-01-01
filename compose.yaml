@@ -1,7 +1,7 @@
 ﻿services:
-  workflowengine.implementation:
+  flowforge.demo:
     build:
-      context: WorkflowEngine.Implementation
+      context: FlowForge.Demo
       dockerfile: Dockerfile
     environment:
       - DOTNET_ENVIRONMENT=Development

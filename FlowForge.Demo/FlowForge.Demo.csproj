@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\FlowForge.Postgresql\FlowForge.Postgresql.csproj" />
+      <ProjectReference Include="..\FlowForge\FlowForge.csproj" />
+      <ProjectReference Include="..\FlowForge.Mermaid\FlowForge.Mermaid.csproj" />
+      <ProjectReference Include="..\FlowForge.Postgresql\FlowForge.Postgresql.csproj" />
+      <ProjectReference Include="..\FlowForge.RabbitMQ\FlowForge.RabbitMQ.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="SampleWorkflowDefinitions\SampleWorkflow.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="client_app\" />
+      <Folder Include="client_app\src\components\" />
+    </ItemGroup>
+
+</Project>

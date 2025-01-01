@@ -1,6 +1,8 @@
 using System.Reflection;
+using FlowForge;
+using FlowForge.Mermaid;
 
-namespace WorkflowEngine.Core.UnitTests;
+namespace Tests.UnitTests;
 
 public class MermaidGeneratorTests
 {

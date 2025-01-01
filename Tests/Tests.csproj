@@ -23,8 +23,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\WorkflowEngine.Core\WorkflowEngine.Core.csproj" />
-      <ProjectReference Include="..\WorkflowEngine.Mermaid\WorkflowEngine.Mermaid.csproj" />
+      <ProjectReference Include="..\FlowForge\FlowForge.csproj" />
+      <ProjectReference Include="..\FlowForge.Mermaid\FlowForge.Mermaid.csproj" />
     </ItemGroup>
 
 </Project>

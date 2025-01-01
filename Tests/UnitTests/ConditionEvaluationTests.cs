@@ -1,11 +1,12 @@
 using FluentAssertions;
 using Moq;
+using FlowForge;
 
-namespace WorkflowEngine.Core.UnitTests;
+namespace Tests.UnitTests;
 
 public class ConditionEvaluationTests
 {
-    private readonly WorkflowEngine _engine;
+    private readonly FlowForge.WorkflowEngine _engine;
     private readonly Mock<IWorkflowRepository> _workflowRepository;
     private readonly Mock<IWorkflowEventQueuePublisher> _workflowEventQueue;
     private readonly Mock<IEventLogger> _eventLogger;
@@ -30,7 +31,7 @@ public class ConditionEvaluationTests
         _serviceProvider = new Mock<IServiceProvider>();
         _workflowActionRegistry = new WorkflowActionRegistry();
         
-        _engine = new WorkflowEngine(
+        _engine = new FlowForge.WorkflowEngine(
             _workflowRepository.Object, 
             _eventLogger.Object,
             _workflowEventQueue.Object,

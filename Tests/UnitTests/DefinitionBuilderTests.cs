@@ -1,6 +1,7 @@
 using FluentAssertions;
+using FlowForge;
 
-namespace WorkflowEngine.Core.UnitTests;
+namespace Tests.UnitTests;
 
 public class DefinitionBuilderTests
 {

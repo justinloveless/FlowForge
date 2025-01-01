@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowForge.Demo", "FlowForge.Demo\FlowForge.Demo.csproj", "{E244F404-822E-4787-B931-D5F8AA7E2DCC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{859CA18E-E999-4A66-868F-0DC3447E3148}"
+	ProjectSection(SolutionItems) = preProject
+		compose.yaml = compose.yaml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowForge", "FlowForge\FlowForge.csproj", "{54725FEF-1535-4B94-A454-D4A57E8EC1FE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{3B1DAA41-D242-414C-891B-00866D00BB73}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowForge.Postgresql", "FlowForge.Postgresql\FlowForge.Postgresql.csproj", "{8C5538E8-AF9D-4152-96D5-2D6C43361501}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowForge.RabbitMQ", "FlowForge.RabbitMQ\FlowForge.RabbitMQ.csproj", "{86A992A6-8C67-4F89-9802-1ACD56A50828}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{F4662CB5-E0E2-4002-B3E1-1A4FF64BE099}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowForge.Mermaid", "FlowForge.Mermaid\FlowForge.Mermaid.csproj", "{A96D39E1-DF57-4687-BD71-EB55A766A8CC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E244F404-822E-4787-B931-D5F8AA7E2DCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E244F404-822E-4787-B931-D5F8AA7E2DCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E244F404-822E-4787-B931-D5F8AA7E2DCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E244F404-822E-4787-B931-D5F8AA7E2DCC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{54725FEF-1535-4B94-A454-D4A57E8EC1FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{54725FEF-1535-4B94-A454-D4A57E8EC1FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{54725FEF-1535-4B94-A454-D4A57E8EC1FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{54725FEF-1535-4B94-A454-D4A57E8EC1FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B1DAA41-D242-414C-891B-00866D00BB73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B1DAA41-D242-414C-891B-00866D00BB73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B1DAA41-D242-414C-891B-00866D00BB73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B1DAA41-D242-414C-891B-00866D00BB73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C5538E8-AF9D-4152-96D5-2D6C43361501}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C5538E8-AF9D-4152-96D5-2D6C43361501}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C5538E8-AF9D-4152-96D5-2D6C43361501}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C5538E8-AF9D-4152-96D5-2D6C43361501}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86A992A6-8C67-4F89-9802-1ACD56A50828}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86A992A6-8C67-4F89-9802-1ACD56A50828}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86A992A6-8C67-4F89-9802-1ACD56A50828}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86A992A6-8C67-4F89-9802-1ACD56A50828}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A96D39E1-DF57-4687-BD71-EB55A766A8CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A96D39E1-DF57-4687-BD71-EB55A766A8CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A96D39E1-DF57-4687-BD71-EB55A766A8CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A96D39E1-DF57-4687-BD71-EB55A766A8CC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E244F404-822E-4787-B931-D5F8AA7E2DCC} = {F4662CB5-E0E2-4002-B3E1-1A4FF64BE099}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <Title>FlowForge.Mermaid</Title>
+        <Description>Enable generating mermaid diagrams from FlowForge workflows</Description>
+        <PackageProjectUrl>https://github.com/justinloveless/FlowForge.git</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/justinloveless/FlowForge.git</RepositoryUrl>
+        <PackageTags>Mermaid, Workflows, FlowForge</PackageTags>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Compile Update="MermaidGenerator.cs">
+        <Generator>MSBuild:GenerateCodeFromAttributes</Generator>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\FlowForge\FlowForge.csproj" />
+    </ItemGroup>
+
+</Project>

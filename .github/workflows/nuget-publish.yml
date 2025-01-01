@@ -25,8 +25,8 @@ jobs:
             # No projects found, return an empty JSON array
             project_json="[]"
           else
-            # Convert the list of projects to a JSON array
-            project_json=$(echo "$projects" | jq -R . | jq -s .)
+            # Convert the list of projects to a compact JSON array
+            project_json=$(echo "$projects" | jq -R . | jq -s -c .)
           fi
           echo "Discovered projects: $project_json"
           echo "project_list=$project_json" >> $GITHUB_OUTPUT

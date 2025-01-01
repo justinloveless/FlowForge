@@ -42,6 +42,10 @@ jobs:
           for project in $(echo "$projects" | tr ',' '\n'); do
             echo "Publishing $project"
             cd $project
+            # Ensure version is updated based on Git history
+            nbgv prepare-release
+            # Build the project
+            dotnet build --configuration Release
             dotnet pack -o ./output --configuration Release
             for nupkg in ./output/*.nupkg; do
               dotnet nuget push "$nupkg" --api-key ${{ secrets.NUGETAPIKEY }} --source https://api.nuget.org/v3/index.json

@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowEngine.RabbitMQ", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{F4662CB5-E0E2-4002-B3E1-1A4FF64BE099}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowEngine.Mermaid", "WorkflowEngine.Mermaid\WorkflowEngine.Mermaid.csproj", "{A96D39E1-DF57-4687-BD71-EB55A766A8CC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +45,10 @@ Global
 		{86A992A6-8C67-4F89-9802-1ACD56A50828}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86A992A6-8C67-4F89-9802-1ACD56A50828}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86A992A6-8C67-4F89-9802-1ACD56A50828}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A96D39E1-DF57-4687-BD71-EB55A766A8CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A96D39E1-DF57-4687-BD71-EB55A766A8CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A96D39E1-DF57-4687-BD71-EB55A766A8CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A96D39E1-DF57-4687-BD71-EB55A766A8CC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{E244F404-822E-4787-B931-D5F8AA7E2DCC} = {F4662CB5-E0E2-4002-B3E1-1A4FF64BE099}

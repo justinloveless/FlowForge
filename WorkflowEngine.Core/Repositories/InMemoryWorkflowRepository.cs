@@ -46,6 +46,11 @@ public class InMemoryWorkflowRepository : IWorkflowRepository
         _workflowDefinitions.TryGetValue(workflowInstance.DefinitionId, out var workflowDefinition);
         return Task.FromResult(workflowDefinition);
     }
+    public Task<WorkflowDefinition> GetWorkflowDefinitionAsync(WorkflowDefinitionId definitionId)
+    {
+        _workflowDefinitions.TryGetValue(definitionId, out var workflowDefinition);
+        return Task.FromResult(workflowDefinition);
+    }
 
     public Task<List<WorkflowDefinition>> GetWorkflowDefinitionsAsync(string name)
     {

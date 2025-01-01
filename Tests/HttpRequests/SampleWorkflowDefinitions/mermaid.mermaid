@@ -1,0 +1,34 @@
+﻿stateDiagram-v2
+    [*] --> Start
+    
+    Start --> Delay
+    state Delay {
+        [*] --> OnEnter
+        state OnEnter {
+            direction LR
+            localhost#58;8080/webhook/something
+            localhost#58;8080/webhook/something/else
+        }
+        state OnExit {
+            direction LR
+            localhost#58;8080/
+        }
+        OnEnter --> OnExit : 10s
+        OnExit --> [*]
+    }
+    
+    Delay --> UserStep : 10s
+    
+    UserStep --> Approval : event == "Submit"
+    
+    Approval --> Schedule : event == "Approved"
+    Approval --> UserStep : event == "Declined"
+    
+    Schedule --> RenewLicense : 2025/01/01
+    RenewLicense --> ApproveLicenseRenewal : event == "Submit"
+
+    
+    ApproveLicenseRenewal --> End : event == "Approved"
+    ApproveLicenseRenewal --> RenewLicense : event == "Declined"
+    
+    End --> [*]

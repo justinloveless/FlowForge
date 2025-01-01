@@ -1,0 +1,62 @@
+﻿name: Sample Predefine Workflow
+build-actions: 
+  - type: start
+    start:
+      onEnter:
+        type: webhook
+        url: http://localhost:8080/webhook/test
+  - type: delay
+    delay: "00:00:10"
+  - type: action
+    action:
+      name: UserStep
+      assignments: 
+        - user: "justin"
+      onEnterActions:
+        - type: webhook
+          url: http://localhost:8080/webhook/test
+      transitions: 
+        - condition: "event == \"Submit\""
+      onExitActions:
+        - type: webhook
+          url: http://localhost:8080/webhook/test
+  - type: action
+    action:
+      name: Approval
+      assignments: 
+        - group: "managers"
+      onEnterActions:
+        - type: webhook
+          url: http://localhost:8080/webhook/test
+      transitions:
+        - condition: "event == \"Approved\""
+        - condition: "event == \"Declined\""
+          nextState: UserStep
+  - type: schedule
+    schedule: 2025/01/01        
+  - type: action
+    action:
+      name: "RenewLicense"
+      assignments:
+          - user: "justin"
+      onEnterActions:
+        - type: webhook
+          url: http://localhost:8080/webhook/test
+      transitions:
+        - condition: "event == \"Submit\""
+  - type: action
+    action:
+      name: ApproveLicenseRenewal
+      assignments:
+        - group: "managers"
+      onEnterActions:
+        - type: "MyCustomAction"
+      transitions:
+        - condition: "event == \"Approved\""
+        - condition: "event == \"Declined\""
+          nextState: RenewLicense      
+  - type: end
+    end:
+      
+      
+      

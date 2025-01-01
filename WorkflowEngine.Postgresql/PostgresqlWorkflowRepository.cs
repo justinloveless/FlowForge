@@ -50,6 +50,7 @@ public class PostgresqlWorkflowRepository : IWorkflowRepository
                ?? throw new InvalidOperationException($"No workflow instance found with the ID '{instanceId}'.");
     }
 
+    
     public async Task<WorkflowDefinition> GetWorkflowDefinitionAsync(WorkflowInstanceId instanceId)
     {
         var instance = await _dbContext.WorkflowInstances.FindAsync(instanceId);
@@ -59,6 +60,14 @@ public class PostgresqlWorkflowRepository : IWorkflowRepository
         var definition = await _dbContext.WorkflowDefinitions.FindAsync(instance.DefinitionId);
         if (definition == null)
             throw new InvalidOperationException($"No workflow definition found with the ID '{instance.DefinitionId}'.");
+
+        return definition;
+    }
+    public async Task<WorkflowDefinition> GetWorkflowDefinitionAsync(WorkflowDefinitionId definitionId)
+    {
+        var definition = await _dbContext.WorkflowDefinitions.FindAsync(definitionId);
+        if (definition == null)
+            throw new InvalidOperationException($"No workflow definition found with the ID '{definitionId}'.");
 
         return definition;
     }

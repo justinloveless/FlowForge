@@ -19,12 +19,18 @@
 
     <ItemGroup>
       <ProjectReference Include="..\WorkflowEngine.Core\WorkflowEngine.Core.csproj" />
+      <ProjectReference Include="..\WorkflowEngine.Mermaid\WorkflowEngine.Mermaid.csproj" />
       <ProjectReference Include="..\WorkflowEngine.Postgresql\WorkflowEngine.Postgresql.csproj" />
       <ProjectReference Include="..\WorkflowEngine.RabbitMQ\WorkflowEngine.RabbitMQ.csproj" />
     </ItemGroup>
 
     <ItemGroup>
       <_ContentIncludedByDefault Remove="SampleWorkflowDefinitions\SampleWorkflow.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="client_app\" />
+      <Folder Include="client_app\src\components\" />
     </ItemGroup>
 
 </Project>

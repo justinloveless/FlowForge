@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WorkflowEngine.Core;
+using WorkflowEngine.Mermaid;
 
 namespace WorkflowEngine.Implementation.Controllers;
 
@@ -87,6 +88,14 @@ public partial class WorkflowController(WorkflowEngineFacade workflowEngine) : C
     {
         var users = await workflowEngine.GetAssignedActorsAsync(stateName, instanceId);
         return Ok(users);
+    }
+
+    [HttpGet("mermaid/generate/{workflowDefinitionId:guid}")]
+    public async Task<IActionResult> GetMermaidDiagram(WorkflowDefinitionId workflowDefinitionId, [FromQuery] bool showDetails = false)
+    {
+        var definition = await workflowEngine.GetWorkflowDefinitionByIdAsync(workflowDefinitionId);
+        var mermaidDiagram = await workflowEngine.ConvertToMermaidAsync(definition, showDetails);
+        return Ok(mermaidDiagram);
     }
     
 }

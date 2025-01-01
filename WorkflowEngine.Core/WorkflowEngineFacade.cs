@@ -19,6 +19,8 @@ public class WorkflowEngineFacade(
     public Task<IEnumerable<WorkflowEvent>> GetWorkflowEventsAsync(WorkflowInstanceId instanceId, string? eventType = null) =>
         eventRepository.GetEventsAsync(instanceId, eventType);
 
+    public async Task<WorkflowDefinition> GetWorkflowDefinitionByIdAsync(WorkflowDefinitionId workflowId) =>
+        await workflowRepository.GetWorkflowDefinitionAsync(workflowId);
     public async Task<IEnumerable<WorkflowDefinition>> GetWorkflowDefinitionsByNameAsync(string name) => 
         await workflowRepository.GetWorkflowDefinitionsAsync(name);
 
@@ -30,4 +32,6 @@ public class WorkflowEngineFacade(
     
     public async Task<IEnumerable<string>> GetAssignedActorsAsync(string stateName, WorkflowInstanceId workflowInstanceId) =>
         await assignmentResolver.GetAssignmentsAsync(stateName, workflowInstanceId);
+    
+    
 }

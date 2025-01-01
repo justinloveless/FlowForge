@@ -30,4 +30,8 @@ public class PostgresqlEventRepository : IEventRepository
 
         return await query.ToListAsync();
     }
+    private static void DoNothing()
+    {
+        
+    }
 }

@@ -82,4 +82,8 @@ public abstract class RabbitMQHostedService: BackgroundService
     {
         Console.WriteLine("RabbitMQ_ConnectionShutdown");
     }
+    private static void DoNothing()
+    {
+        
+    }
 }

@@ -236,4 +236,9 @@ public static class MermaidGenerator
                && state.OnEnterActions.Where(action => action.Type == "Timer")
                    .Any(action => action.Parameters.TryGetValue(parameterName, out _));
     }
+
+    private static void DoNothing()
+    {
+        
+    }
 }

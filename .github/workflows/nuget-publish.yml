@@ -29,21 +29,24 @@ jobs:
         id: changes
         run: |
           # List all changed files and filter directories starting with 'FlowForge'
-          git diff-tree --no-commit-id --name-only -r HEAD^..HEAD | \
+          git diff-tree --no-commit-id --name-only -r $(git rev-parse --verify HEAD~1 || echo $(git rev-list --max-parents=0 HEAD)) HEAD | \
           grep '^FlowForge' | awk -F'/' '{print $1}' | sort | uniq > changed_projects.txt
-          echo "::set-output name=projects::$(cat changed_projects.txt | tr '\n' ',')"     
-      
+          echo "projects=$(cat changed_projects.txt | tr '\n' ',')" >> $GITHUB_ENV
+        shell: bash
+
+
       - name: Publish changed projects
-        if: steps.changes.outputs.projects != ''
+        if: env.projects != ''
         run: |
-          for project in $(echo "${{ steps.changes.outputs.projects }}" | tr ',' '\n'); do
+          for project in $(echo "$projects" | tr ',' '\n'); do
             echo "Publishing $project"
             cd $project
-            # Ensure version is updated based on Git history
-            nbgv prepare-release
             dotnet pack -o ./output --configuration Release
             for nupkg in ./output/*.nupkg; do
               dotnet nuget push "$nupkg" --api-key ${{ secrets.NUGETAPIKEY }} --source https://api.nuget.org/v3/index.json
             done
             cd -
           done
+        env:
+          projects: ${{ env.projects }}
+      

@@ -21,8 +21,10 @@ jobs:
         run: |
           # Find all directories starting with 'FlowForge'
           projects=$(find . -type d -name "FlowForge*" -maxdepth 1 | sed 's|^\./||')
-          echo "Discovered projects: $projects"
-          echo "::set-output name=project_list::$(echo $projects | tr '\n' ',')"
+          # Convert to JSON array format
+          project_json=$(echo "$projects" | jq -R . | jq -s .)
+          echo "Discovered projects: $project_json"
+          echo "::set-output name=project_list::$project_json"
     
   publish:
     needs: discover-projects

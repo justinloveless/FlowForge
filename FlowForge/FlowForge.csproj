@@ -14,6 +14,9 @@
         <PackageTags>Workflow, FlowForge</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <Version>$(GitVersion_NuGetVersion)</Version>
+        <VersionPrefix>$(GitVersion_SimpleVersion)</VersionPrefix>
+        <VersionSuffix>$(GitVersion_PreReleaseTag)</VersionSuffix>
     </PropertyGroup>
 
     <ItemGroup>

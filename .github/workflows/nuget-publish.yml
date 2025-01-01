@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      - name: Install Nerdbank.GitVersioning
+        run: dotnet tool install -g nbgv
+      
       - name: Checkout repository
         uses: actions/checkout@v3
         
@@ -36,6 +39,8 @@ jobs:
           for project in $(echo "${{ steps.changes.outputs.projects }}" | tr ',' '\n'); do
             echo "Publishing $project"
             cd $project
+            # Ensure version is updated based on Git history
+            nbgv prepare-release
             dotnet pack -o ./output --configuration Release
             for nupkg in ./output/*.nupkg; do
               dotnet nuget push "$nupkg" --api-key ${{ secrets.NUGETAPIKEY }} --source https://api.nuget.org/v3/index.json

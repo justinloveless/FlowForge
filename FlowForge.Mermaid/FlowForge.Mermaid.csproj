@@ -9,6 +9,9 @@
         <PackageProjectUrl>https://github.com/justinloveless/FlowForge.git</PackageProjectUrl>
         <RepositoryUrl>https://github.com/justinloveless/FlowForge.git</RepositoryUrl>
         <PackageTags>Mermaid, Workflows, FlowForge</PackageTags>
+        <Version>$(GitVersion_NuGetVersion)</Version>
+        <VersionPrefix>$(GitVersion_SimpleVersion)</VersionPrefix>
+        <VersionSuffix>$(GitVersion_PreReleaseTag)</VersionSuffix>
     </PropertyGroup>
 
     <ItemGroup>

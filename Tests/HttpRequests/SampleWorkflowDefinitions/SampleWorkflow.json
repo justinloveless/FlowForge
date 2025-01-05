@@ -1,6 +1,7 @@
 ﻿{
 	"name": "Sample Workflow",
 	"initialState": "Start",
+	"isEventDriven": false,
 	"states": [
 		{
 			"name": "Start",

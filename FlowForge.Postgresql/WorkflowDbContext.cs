@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using FlowForge;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace FlowForge.Postgresql;
 
@@ -10,6 +11,11 @@ public class WorkflowDbContext(DbContextOptions<WorkflowDbContext> options) : Db
     public DbSet<WorkflowDefinition> WorkflowDefinitions { get; set; }
     public DbSet<WorkflowInstance> WorkflowInstances { get; set; }
     public DbSet<WorkflowEvent> WorkflowEvents { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.ConfigureWarnings((s) => s.Log(RelationalEventId.PendingModelChangesWarning));
+    }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,6 +31,7 @@ public class WorkflowDbContext(DbContextOptions<WorkflowDbContext> options) : Db
                         id => id.Value,      // Convert WorkflowDefinitionId to Guid
                         value => new WorkflowDefinitionId(value) // Convert Guid to WorkflowDefinitionId
                     );
+                entity.Property(e => e.IsEventDriven).IsRequired().HasDefaultValue(false);
                 entity.OwnsMany(e => e.States, state =>
                 {
                     state.OwnsOne(e => e.Assignments, ar =>

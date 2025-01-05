@@ -19,9 +19,12 @@ public partial class WorkflowController(FlowForge flowForge) : ControllerBase
     [HttpPost("register/predefined")]
     public async Task<IActionResult> RegisterPredefinedWorkflow()
     {
-        var def = new WorkflowDefinitionBuilder("Sample Predefined Workflow")
+        var def = new WorkflowDefinitionBuilder("Sample Event Driven Workflow")
+            .AsEventDriven()
             .Start(s => s
-                .OnEnter(new WebhookAction("http://localhost:8080/webhook/test")))
+                .OnEnter(new WebhookAction("http://localhost:8080/webhook/test"))
+                .Transition("event == \"UsernameChanged\"", "UserStep")
+            )
             .Delay(TimeSpan.FromSeconds(10))
             .ActionableStep("UserStep", s => s 
                 .AssignUser("justin")

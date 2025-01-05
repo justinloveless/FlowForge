@@ -14,6 +14,8 @@ public class FlowForge(
 
     public Task TriggerEventAsync(WorkflowInstanceId instanceId, string eventName, Dictionary<string, object> eventData, string actorId) =>
         workflowEngine.TriggerEventAsync(instanceId, eventName, eventData, actorId);
+    public Task TriggerGlobalEventAsync(string eventName, Dictionary<string, object> eventData) =>
+    workflowEngine.TriggerGlobalEventAsync(eventName, eventData);
 
     // Repository and event-specific methods
     public Task<IEnumerable<WorkflowEvent>> GetWorkflowEventsAsync(WorkflowInstanceId instanceId, string? eventType = null) =>

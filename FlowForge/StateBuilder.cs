@@ -10,6 +10,8 @@ public class StateBuilder(string name, int? stateIndex = null)
         Transitions = []
     };
     private readonly int _currentStateIndex = stateIndex ?? 0;
+    
+    public List<TransitionDefinition> Transitions => _state.Transitions;
 
 
     public StateBuilder SetIdle(bool isIdle)
@@ -51,9 +53,9 @@ public class StateBuilder(string name, int? stateIndex = null)
         return this;
     }
 
-    public StateBuilder Transition(string condition, string? nextState = null, int? index = null)
+    public StateBuilder Transition(string condition, string? nextState = null)
     {
-        return AddTransition(condition, nextState, index ?? _currentStateIndex);
+        return AddTransition(condition, nextState, _currentStateIndex);
     }
 
     public StateBuilder AddAssignmentUser(string userId)

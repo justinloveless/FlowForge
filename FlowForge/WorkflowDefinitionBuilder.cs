@@ -23,6 +23,12 @@ public class WorkflowDefinitionBuilder(string name, string? initialState = null)
         return stateName;
     }
 
+    public WorkflowDefinitionBuilder AsEventDriven()
+    {
+        _workflowDefinition.IsEventDriven = true;
+        return this;
+    }
+
     public WorkflowDefinitionBuilder Start(Action<StateBuilder>? configure = null)
     {
         _currentStateBuilder = new StateBuilder("Start", _currentStateIndex);
@@ -30,7 +36,10 @@ public class WorkflowDefinitionBuilder(string name, string? initialState = null)
         _currentStateIndex++;
         _workflowDefinition.InitialState = "Start";
         configure?.Invoke(_currentStateBuilder);
-        _currentStateBuilder.Transition("true", index: _currentStateIndex);
+        if (_currentStateBuilder.Transitions.Count == 0)
+        {
+            _currentStateBuilder.AddTransition("true", index: _currentStateIndex); // add a default transition
+        }
         return this;
     }
 
@@ -126,7 +135,7 @@ public class WorkflowDefinitionBuilder(string name, string? initialState = null)
         _currentStateIndex++;
         _currentStateBuilder = stateBuilder;
         _currentStateBuilder.AddOnEnterAction(action);
-        _currentStateBuilder.Transition("event == \"Resume\"", index: _currentStateIndex);
+        _currentStateBuilder.AddTransition("event == \"Resume\"", index: _currentStateIndex);
         _currentStateBuilder.AssignUser("system");
     }
     private void AddState(StateDefinition state)

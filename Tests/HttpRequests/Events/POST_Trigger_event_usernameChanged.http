@@ -1,0 +1,13 @@
+﻿### GET request to example server
+POST {{baseurl}}/workflow/triggerGlobal
+Content-Type: application/json
+
+{
+	"eventName": "UsernameChanged",
+	"eventData": {
+        "userid": "Justin",
+        "newUsername": "Justin1234"
+	}
+}
+
+###

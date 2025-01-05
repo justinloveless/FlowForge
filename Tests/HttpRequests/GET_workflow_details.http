@@ -1,4 +1,4 @@
 ﻿### GET request to example server
-GET {{baseurl}}/workflow/definitions?workflowName=Sample Predefined Workflow
+GET {{baseurl}}/workflow/definitions?workflowName=Sample Event Driven Workflow
 
 ###

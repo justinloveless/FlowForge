@@ -66,21 +66,13 @@ internal class WorkflowEngine(
             var initialState = workflowDefinition.States.FirstOrDefault(s => s.Name == workflowDefinition.InitialState);
             if (initialState is null) continue;
 
-            var potentialInstance = new WorkflowInstance
-            {
-                WorkflowName = workflowDefinition.Name,
-                DefinitionId = workflowDefinition.Id,
-                CurrentState = workflowDefinition.InitialState,
-                WorkflowData = eventData as Dictionary<string, object>
-            };
-            var transition = initialState.Transitions.FirstOrDefault( t => EvaluateCondition(t.Condition, potentialInstance, eventName).Result);
-            await LogEvent("WorkflowStartedByEvent", potentialInstance.Id, $"Workflow {workflowDefinition.Name} started by event {eventName}", 
-                potentialInstance.CurrentState);
-                
-            await ProcessStateAsync(potentialInstance, eventName);
+            var shouldStart = initialState.Transitions.Any( t => EvaluateCondition(t.Condition, null, eventName).Result);
+            if (!shouldStart) continue;
+            
+            await LogEvent("WorkflowStartedByEvent", null, $"Workflow {workflowDefinition.Name} started by event {eventName}");
+            await StartWorkflowAsync(workflowDefinition.Id, eventData as Dictionary<string, object>, eventName);
 
         }
-        return;
     }
 
     public async Task RegisterWorkflowAsync(WorkflowDefinition workflow)
@@ -92,11 +84,11 @@ internal class WorkflowEngine(
 
     }
 
-    public async Task<WorkflowInstanceId> StartWorkflowAsync(WorkflowDefinitionId workflowId, Dictionary<string, object> initialData)
+    public async Task<WorkflowInstanceId> StartWorkflowAsync(WorkflowDefinitionId workflowId, Dictionary<string, object> initialData, string? eventName = null)
     {
         var instance = await repository.StartWorkflowAsync(workflowId, initialData);
         await LogEvent("WorkflowStarted", instance.Id, $"Workflow {workflowId} started with ID {instance.Id}", instance.CurrentState);
-        await ProcessStateAsync(instance);
+        await ProcessStateAsync(instance, eventName);
         return instance.Id;
     }
 
@@ -121,7 +113,8 @@ internal class WorkflowEngine(
                 await actionToExecute.ExecuteAsync(instance, action.Parameters, serviceProvider);
             }
 
-            instance.StateData["event"] = eventName;
+            if (eventName != null) instance.StateData["event"] = eventName;
+            
             foreach (var transition in currentStateDefinition.Transitions)
             {
                 if (await EvaluateCondition(transition.Condition, instance, eventName) ==
@@ -195,6 +188,14 @@ internal class WorkflowEngine(
         });
     }
 
+    public async Task TriggerGlobalEventAsync(string eventName, Dictionary<string, object> eventData)
+    {
+        await LogEvent(eventName, null, 
+            $"External global event {eventName} triggered. EventData: {JsonSerializer.Serialize(eventData)}");
+        eventQueuePublisher.PublishEventAsync(null, eventName, eventData);
+        
+    }
+
     public async Task TriggerEventAsync(WorkflowInstanceId instanceId, string eventName, Dictionary<string, object> eventData, string actorId)
     {
         var instance = await repository.GetWorkflowInstanceAsync(instanceId);
@@ -243,16 +244,19 @@ internal class WorkflowEngine(
 
         var jintInterpreter = new Engine();
 
-        // register workflow data
-        foreach (var kvp in instance?.WorkflowData)
+        if (instance is not null)
         {
-            jintInterpreter.SetValue(kvp.Key, kvp.Value);
-        }
-        
-        // Register variables from the state data
-        foreach (var kvp in instance?.StateData)
-        {
-            jintInterpreter.SetValue(kvp.Key, kvp.Value);
+            // register workflow data
+            foreach (var kvp in instance.WorkflowData)
+            {
+                jintInterpreter.SetValue(kvp.Key, kvp.Value);
+            }
+            
+            // Register variables from the state data
+            foreach (var kvp in instance.StateData)
+            {
+                jintInterpreter.SetValue(kvp.Key, kvp.Value);
+            }
         }
 
         // always set system variables after state data so they don't get overriden

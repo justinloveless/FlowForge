@@ -6,6 +6,7 @@ public class WorkflowDefinition
     public string Name { get; set; } = string.Empty;
     public string InitialState { get; set; } = string.Empty;
     public List<StateDefinition> States { get; set; } = [];
+    public bool IsEventDriven { get; set; } = false;
 }
 
 [StronglyTypedId(jsonConverter: StronglyTypedIdJsonConverter.SystemTextJson)]

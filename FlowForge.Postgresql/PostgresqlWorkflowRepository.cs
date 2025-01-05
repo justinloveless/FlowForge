@@ -50,7 +50,16 @@ public class PostgresqlWorkflowRepository : IWorkflowRepository
                ?? throw new InvalidOperationException($"No workflow instance found with the ID '{instanceId}'.");
     }
 
-    
+    public async Task<IEnumerable<WorkflowDefinition>> GetEventDrivenWorkflowDefinitionsAsync(string eventName)
+    {
+        return await _dbContext.WorkflowDefinitions.Include(d => d.States)
+            .ThenInclude(s => s.Transitions)
+            .Where(d => d.IsEventDriven && d.States.Any(s => s.Name == d.InitialState && 
+                                                             s.Transitions.Any(t => t.Condition.Contains(eventName))))
+            .ToListAsync();
+    }
+
+
     public async Task<WorkflowDefinition> GetWorkflowDefinitionAsync(WorkflowInstanceId instanceId)
     {
         var instance = await _dbContext.WorkflowInstances.FindAsync(instanceId);

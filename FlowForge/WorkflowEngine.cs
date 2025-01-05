@@ -23,6 +23,12 @@ internal class WorkflowEngine(
 
     public async Task HandleEventAsync(string instanceId, string eventName, object eventData)
     {
+        if (string.IsNullOrEmpty(instanceId))
+        {
+            await StarWorkflowsByEvent(eventName, eventData);
+            return;
+        } 
+        
         var workflowInstance = await repository.GetWorkflowInstanceAsync(new WorkflowInstanceId(Guid.Parse(instanceId)));
         if (workflowInstance == null)
         {
@@ -44,17 +50,37 @@ internal class WorkflowEngine(
         if (matchingTransition != null)
         {
             // Transition to the next state
-            var previousState = workflowInstance.CurrentState;
-            await TransitionStateAsync(workflowInstance, matchingTransition.NextState);
-                
-            await LogEvent("StateTransitioned", workflowInstance.Id,
-                $"From {previousState} to {workflowInstance.CurrentState}. Condition met: {matchingTransition.Condition}.", 
-                workflowInstance.CurrentState);
-
+            await TransitionStateAsync(workflowInstance, matchingTransition.NextState, matchingTransition.Condition);
             // recursively process the next state
             await ProcessStateAsync(workflowInstance);
         }
         
+    }
+
+    private async Task StarWorkflowsByEvent(string eventName, object eventData)
+    {
+        // handle starting event-driven workflows 
+        var eventDrivenWorkflows = await repository.GetEventDrivenWorkflowDefinitionsAsync(eventName);
+        foreach (var workflowDefinition in eventDrivenWorkflows)      
+        {
+            var initialState = workflowDefinition.States.FirstOrDefault(s => s.Name == workflowDefinition.InitialState);
+            if (initialState is null) continue;
+
+            var potentialInstance = new WorkflowInstance
+            {
+                WorkflowName = workflowDefinition.Name,
+                DefinitionId = workflowDefinition.Id,
+                CurrentState = workflowDefinition.InitialState,
+                WorkflowData = eventData as Dictionary<string, object>
+            };
+            var transition = initialState.Transitions.FirstOrDefault( t => EvaluateCondition(t.Condition, potentialInstance, eventName).Result);
+            await LogEvent("WorkflowStartedByEvent", potentialInstance.Id, $"Workflow {workflowDefinition.Name} started by event {eventName}", 
+                potentialInstance.CurrentState);
+                
+            await ProcessStateAsync(potentialInstance, eventName);
+
+        }
+        return;
     }
 
     public async Task RegisterWorkflowAsync(WorkflowDefinition workflow)
@@ -101,13 +127,7 @@ internal class WorkflowEngine(
                 if (await EvaluateCondition(transition.Condition, instance, eventName) ==
                     false) continue;
 
-                var previousState = instance.CurrentState;
-                await TransitionStateAsync(instance, transition.NextState);
-                
-                await LogEvent("StateTransitioned", instance.Id,
-                    $"From {previousState} to {instance.CurrentState}. Condition met: {transition.Condition}.", 
-                    instance.CurrentState);
-
+                await TransitionStateAsync(instance, transition.NextState, transition.Condition);
                 // recursively process the next state
                 await ProcessStateAsync(instance);
                 return;
@@ -130,9 +150,9 @@ internal class WorkflowEngine(
         }
     }
 
-    private async Task TransitionStateAsync(WorkflowInstance instance, string targetStateName)
+    private async Task TransitionStateAsync(WorkflowInstance instance, string targetStateName, string? conditionMet = null)
     {
-        var currentState = instance.CurrentState;
+        var previousState = instance.CurrentState;
         var definition = await repository.GetWorkflowDefinitionAsync(instance.Id);
         var targetState = definition.States.FirstOrDefault(s => s.Name == targetStateName);
 
@@ -142,7 +162,7 @@ internal class WorkflowEngine(
         }
         
         // Execute OnExit actions for the current state
-        var currentStateDef = definition.States.FirstOrDefault(s => s.Name == currentState);
+        var currentStateDef = definition.States.FirstOrDefault(s => s.Name == previousState);
         if (currentStateDef != null)
         {
             foreach (var action in currentStateDef.OnExitActions)
@@ -155,6 +175,10 @@ internal class WorkflowEngine(
         // Update the state
         instance.CurrentState = targetStateName;
         await repository.UpdateWorkflowInstanceAsync(instance);
+        
+        await LogEvent("StateTransitioned", instance.Id,
+            $"From {previousState} to {instance.CurrentState}. Condition met: {conditionMet}.", 
+            instance.CurrentState);
     }
 
     private async Task LogEvent(string eventName, WorkflowInstanceId? instanceId, string details, string? currentState = "")

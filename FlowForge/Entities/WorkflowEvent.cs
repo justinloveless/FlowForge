@@ -4,6 +4,7 @@ public class WorkflowEvent
 {
     public WorkflowEventId Id { get; init; } = new(Guid.NewGuid());
     public WorkflowInstanceId WorkflowInstanceId { get; init; }
+    public WorkflowDefinitionId WorkflowDefinitionId { get; init; }
     public string EventType { get; init; } = string.Empty; // e.g., "StateTransition", "WebhookCall"
     public string CurrentState { get; set; } = string.Empty;
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;

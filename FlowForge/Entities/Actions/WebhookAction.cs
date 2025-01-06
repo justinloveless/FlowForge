@@ -44,6 +44,7 @@ public class WebhookAction : WorkflowAction, IWorkflowAction
         await eventRepository.AddEventAsync(new WorkflowEvent
         {
             WorkflowInstanceId = instance.Id,
+            WorkflowDefinitionId = instance.DefinitionId,
             EventType = $"{Type}Executed",
             CurrentState = instance.CurrentState,
             Details = eventLogDetails,

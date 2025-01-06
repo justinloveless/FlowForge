@@ -30,6 +30,7 @@ public class EmitEventAction : IWorkflowAction
         await eventRepository.AddEventAsync(new WorkflowEvent
         {
             WorkflowInstanceId = instance.Id,
+            WorkflowDefinitionId = instance.DefinitionId,
             EventType = $"{_type}Executed",
             CurrentState = instance.CurrentState,
             Details = eventLogDetails,

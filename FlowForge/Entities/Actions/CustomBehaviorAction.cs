@@ -27,6 +27,7 @@ public class CustomBehaviorAction
         await eventRepository.AddEventAsync(new WorkflowEvent
         {
             WorkflowInstanceId = instance.Id,
+            WorkflowDefinitionId = instance.DefinitionId,
             EventType = $"{Type}Executed",
             CurrentState = instance.CurrentState,
             Details = eventLogDetails,

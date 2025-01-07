@@ -16,7 +16,7 @@ public class PublishRabbitMQHostedService(string hostName, string queueName, ILo
         // we don't need to do anything on execute. We just need the channel to stay open
     }
     
-    public async Task PublishEventAsync(string workflowInstanceId, string eventName, Dictionary<string, object> eventData)
+    public async Task PublishEventAsync(WorkflowInstanceId?  workflowInstanceId, string eventName, Dictionary<string, object> eventData)
     {
         var eventMessage = new EventMessage
         {

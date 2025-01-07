@@ -7,5 +7,5 @@ public interface IWorkflowEngine
     public Task ProcessStateAsync(WorkflowInstance instance, string? eventName = null);
     Task TriggerEventAsync(WorkflowInstanceId instanceId, string eventName, Dictionary<string, object> eventData, string actorId);
     Task TriggerGlobalEventAsync(string eventName, Dictionary<string, object> eventData);
-    public Task HandleEventAsync(string instanceId, string eventName, object eventData);
+    public Task HandleEventAsync(WorkflowInstanceId? instanceId, string eventName, object eventData);
 }

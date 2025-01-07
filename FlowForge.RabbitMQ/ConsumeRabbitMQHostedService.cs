@@ -46,7 +46,7 @@ public class ConsumeRabbitMQHostedService(IServiceProvider provider, string host
         if (receivedEvent != null)
         {
             logger.LogInformation("Processing event: {ReceivedEventEventName}", receivedEvent.EventName);
-            await workflowEngine.HandleEventAsync( receivedEvent.WorkflowInstanceId, receivedEvent.EventName, receivedEvent.EventData);
+            await workflowEngine.HandleEventAsync(receivedEvent.WorkflowInstanceId, receivedEvent.EventName, receivedEvent.EventData);
         }
     }
 }

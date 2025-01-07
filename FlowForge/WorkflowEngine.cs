@@ -21,15 +21,15 @@ internal class WorkflowEngine(
 {
     private readonly WorkflowEngineOptions _workflowOptions = workflowOptions;
 
-    public async Task HandleEventAsync(string instanceId, string eventName, object eventData)
+    public async Task HandleEventAsync(WorkflowInstanceId? instanceId, string eventName, object eventData)
     {
-        if (string.IsNullOrEmpty(instanceId))
+        if (instanceId is null || instanceId == new WorkflowInstanceId(Guid.Empty))
         {
             await StarWorkflowsByEvent(eventName, eventData);
             return;
         } 
         
-        var workflowInstance = await repository.GetWorkflowInstanceAsync(new WorkflowInstanceId(Guid.Parse(instanceId)));
+        var workflowInstance = await repository.GetWorkflowInstanceAsync((WorkflowInstanceId)instanceId);
         if (workflowInstance == null)
         {
             // Log and ignore
@@ -174,18 +174,59 @@ internal class WorkflowEngine(
             instance.CurrentState);
     }
 
-    private async Task LogEvent(string eventName, WorkflowInstanceId? instanceId, string details, string? currentState = "")
+    // private async Task ProcessForkAsync(WorkflowInstance instance, ForkState fork)
+    // {
+    //     foreach (var path in fork.ParallelPaths)
+    //     {
+    //         // add each path to active states
+    //         // instance.ActiveStates.Add(path);
+    //         var eventId = TriggerInternalEventAsync(instance.Id, fork.Name, 
+    //             $"ActivatedState:{path}", new Dictionary<string, object>());
+    //     }
+    //
+    //     // instance.ActiveStates.Add(fork.JoinState);
+    //     await repository.UpdateWorkflowInstanceAsync(instance);
+    // }
+    //
+    // private async Task ProcessJoinAsync(WorkflowInstance instance, JoinState join)
+    // {
+    //     var completedPaths = await GetCompletedPaths(instance, join.ForkEventId);
+    //
+    //     if (completedPaths.Count == join.WaitForEvents.Count)
+    //     {
+    //         var matchingTransition = join.Transitions.FirstOrDefault(t => EvaluateCondition(t.Condition, instance).Result);
+    //         if (matchingTransition != null)
+    //         {
+    //             await TransitionStateAsync(instance, matchingTransition.NextState, matchingTransition.Condition);
+    //             await ProcessStateAsync(instance);
+    //         }
+    //     }
+    //     else
+    //     {
+    //         await LogEvent("JoinStateProgress", instance.Id,
+    //             $"Join state waiting for completion of {string.Join(", ", join.WaitForEvents.Except(completedPaths))}");
+    //     }
+    // }
+    //
+    // private async Task<IEnumerable<string>> GetCompletedPaths(WorkflowInstance)
+    // {
+    //     
+    // }
+
+    private async Task<WorkflowEventId> LogEvent(string eventName, WorkflowInstanceId? instanceId, string details, string? currentState = "")
     {
         await eventLogger.LogEventAsync(eventName, instanceId, details);
 
-        await eventRepository.AddEventAsync(new WorkflowEvent
+        var workflowEvent = new WorkflowEvent
         {
             WorkflowInstanceId = instanceId ?? new WorkflowInstanceId(Guid.Empty),
             EventType = eventName,
             CurrentState = currentState,
             Details = details,
             Timestamp = DateTime.UtcNow
-        });
+        };
+        await eventRepository.AddEventAsync(workflowEvent);
+        return workflowEvent.Id;
     }
 
     public async Task TriggerGlobalEventAsync(string eventName, Dictionary<string, object> eventData)
@@ -194,6 +235,15 @@ internal class WorkflowEngine(
             $"External global event {eventName} triggered. EventData: {JsonSerializer.Serialize(eventData)}");
         eventQueuePublisher.PublishEventAsync(null, eventName, eventData);
         
+    }
+
+    private async Task<WorkflowEventId> TriggerInternalEventAsync(WorkflowInstanceId instanceId, string currentState, string eventName, Dictionary<string, object> eventData)
+    {
+        var eventId = await LogEvent(eventName, instanceId, 
+            $"Internal event {eventName} triggered. EventData: {JsonSerializer.Serialize(eventData)}", 
+            currentState);
+        eventQueuePublisher.PublishEventAsync(instanceId, eventName, eventData);
+        return eventId;
     }
 
     public async Task TriggerEventAsync(WorkflowInstanceId instanceId, string eventName, Dictionary<string, object> eventData, string actorId)
@@ -219,7 +269,7 @@ internal class WorkflowEngine(
         }
         
         await repository.UpdateWorkflowInstanceAsync(instance);
-        eventQueuePublisher.PublishEventAsync(instance.Id.ToString(), eventName, eventData);
+        eventQueuePublisher.PublishEventAsync(instance.Id, eventName, eventData);
         
     }
 

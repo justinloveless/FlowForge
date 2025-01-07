@@ -21,7 +21,7 @@ public class EmitEventAction : IWorkflowAction
         var eventDataString = parameters.TryGetValue("headers", out var eventDataObj) ? eventDataObj.ToString() : "{}";
         var eventData = JsonSerializer.Deserialize<Dictionary<string, object>>(eventDataString);
         
-        await eventQueue.PublishEventAsync(instance.Id.ToString(), eventType.ToString(), eventData);
+        await eventQueue.PublishEventAsync(instance.Id, eventType.ToString(), eventData);
         
         var eventLogDetails =
             $"State: {instance.CurrentState}, Event Type Emitted: {eventType}, EventData: {JsonSerializer.Serialize(eventData)}";

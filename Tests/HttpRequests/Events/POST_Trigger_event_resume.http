@@ -1,0 +1,10 @@
+﻿### GET request to example server
+POST {{baseurl}}/workflow/05a94e74-a54e-49a0-ae88-433a55727e09/trigger?actorId=system
+Content-Type: application/json
+
+{
+	"eventName": "Resume",
+	"eventData": {}
+}
+
+###

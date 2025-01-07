@@ -34,7 +34,7 @@ public class PostgresqlWorkflowRepository : IWorkflowRepository
         {
             WorkflowName = workflowDefinition.Name,
             DefinitionId = workflowDefinition.Id,
-            CurrentState = workflowDefinition.InitialState,
+            ActiveStates = [workflowDefinition.InitialState],
             WorkflowData = initialData
         };
 

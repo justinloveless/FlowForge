@@ -6,15 +6,19 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace FlowForge.Postgresql;
 
-public class WorkflowDbContext(DbContextOptions<WorkflowDbContext> options) : DbContext(options)
+public class WorkflowDbContext : DbContext
 {
     public DbSet<WorkflowDefinition> WorkflowDefinitions { get; set; }
     public DbSet<WorkflowInstance> WorkflowInstances { get; set; }
     public DbSet<WorkflowEvent> WorkflowEvents { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    // {
+    //     optionsBuilder.ConfigureWarnings((s) => s.Log(RelationalEventId.PendingModelChangesWarning));
+    // }
+    public WorkflowDbContext(DbContextOptions<WorkflowDbContext> options) : base(options)
     {
-        optionsBuilder.ConfigureWarnings((s) => s.Log(RelationalEventId.PendingModelChangesWarning));
+        
     }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -135,6 +139,11 @@ public class WorkflowDbContext(DbContextOptions<WorkflowDbContext> options) : Db
                 .HasConversion(
                     id => id.Value,      // Convert WorkflowInstanceId to Guid
                     value => new WorkflowInstanceId(value) // Convert Guid to WorkflowInstanceId
+                );
+            entity.Property(e => e.WorkflowDefinitionId)
+                .HasConversion(
+                    id => id.Value,      // Convert WorkflowInstanceId to Guid
+                    value => new WorkflowDefinitionId(value) // Convert Guid to WorkflowInstanceId
                 );
         });
         

@@ -18,7 +18,7 @@ internal class WebhookHandler: IWebhookHandler
         request.Content = JsonContent.Create(new WebhookBody(
             instance.WorkflowName, 
             instance.Id, 
-            instance.CurrentState, 
+            instance.ActiveStates, 
             instance.StateData));
         request.Headers.Add("Accept", "application/json");
         foreach (var hkey in headers.Keys)
@@ -35,4 +35,4 @@ internal class WebhookHandler: IWebhookHandler
     
 }
 
-public record WebhookBody (string WorkflowName, WorkflowInstanceId InstanceId, string CurrentState, Dictionary<string, object> StateData);
+public record WebhookBody (string WorkflowName, WorkflowInstanceId InstanceId, List<string> ActiveStates, Dictionary<string, object> StateData);

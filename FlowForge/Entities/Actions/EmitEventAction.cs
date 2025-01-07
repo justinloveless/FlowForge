@@ -24,7 +24,7 @@ public class EmitEventAction : IWorkflowAction
         await eventQueue.PublishEventAsync(instance.Id, eventType.ToString(), eventData);
         
         var eventLogDetails =
-            $"State: {instance.CurrentState}, Event Type Emitted: {eventType}, EventData: {JsonSerializer.Serialize(eventData)}";
+            $"Active states: {string.Join(", ", instance.ActiveStates)}, Event Type Emitted: {eventType}, EventData: {JsonSerializer.Serialize(eventData)}";
         await eventLogger.LogEventAsync($"{_type}Executed", instance.Id, eventLogDetails);
 
         await eventRepository.AddEventAsync(new WorkflowEvent
@@ -32,7 +32,7 @@ public class EmitEventAction : IWorkflowAction
             WorkflowInstanceId = instance.Id,
             WorkflowDefinitionId = instance.DefinitionId,
             EventType = $"{_type}Executed",
-            CurrentState = instance.CurrentState,
+            ActiveStates = instance.ActiveStates,
             Details = eventLogDetails,
             Timestamp = DateTime.UtcNow
         });

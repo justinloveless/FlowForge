@@ -6,6 +6,7 @@ public class WorkflowEvent
     public WorkflowInstanceId WorkflowInstanceId { get; init; }
     public WorkflowDefinitionId WorkflowDefinitionId { get; init; }
     public string EventType { get; init; } = string.Empty; // e.g., "StateTransition", "WebhookCall"
+    public string SourceState { get; set; } = string.Empty;
     public List<string> ActiveStates { get; set; } = [];
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     public string Details { get; set; } = string.Empty; // JSON or human-readable details

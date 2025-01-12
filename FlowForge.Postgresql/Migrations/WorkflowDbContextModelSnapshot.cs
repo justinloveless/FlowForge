@@ -63,6 +63,10 @@ namespace FlowForge.Postgresql.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("SourceState")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
@@ -118,6 +122,9 @@ namespace FlowForge.Postgresql.Migrations
                                 .HasColumnType("integer");
 
                             NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<int>("Id"));
+
+                            b1.PrimitiveCollection<List<string>>("DependsOn")
+                                .HasColumnType("text[]");
 
                             b1.Property<bool>("IsIdle")
                                 .HasColumnType("boolean");
@@ -193,8 +200,7 @@ namespace FlowForge.Postgresql.Migrations
                                         .HasForeignKey("StateDefinitionWorkflowDefinitionId", "StateDefinitionId");
                                 });
 
-                            b1.Navigation("Assignments")
-                                .IsRequired();
+                            b1.Navigation("Assignments");
 
                             b1.Navigation("Transitions");
                         });

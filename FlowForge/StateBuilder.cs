@@ -2,7 +2,7 @@ namespace FlowForge;
 
 public class StateBuilder(string name, int? stateIndex = null)
 {
-    private readonly StateDefinition _state = new()
+    private StateDefinition _state = new()
     {
         Name = name,
         OnEnterActions = [],

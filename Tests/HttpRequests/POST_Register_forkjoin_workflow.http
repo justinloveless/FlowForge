@@ -1,0 +1,14 @@
+﻿### GET request to example server
+POST {{baseurl}}/workflow/register
+Content-Type: application/json
+
+< ./SampleWorkflowDefinitions/ForkJoinWorkflow.json
+
+> {%
+    client.test("Got a success response", function() {
+        client.assert(response.status === 200)
+    });
+
+
+    client.global.set("workflowDefinitionId", response.body) %}
+###

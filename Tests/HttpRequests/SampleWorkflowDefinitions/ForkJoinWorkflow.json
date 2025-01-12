@@ -1,0 +1,114 @@
+﻿{
+	"name": "Sample Workflow",
+	"initialState": "Start",
+	"isEventDriven": false,
+	"states": [
+		{
+			"name": "Start",
+			"onEnterActions": [],
+			"onExitActions": [],
+			"transitions": [
+				{
+					"condition": "true",
+					"nextState": "Fork1"
+				}
+			],
+			"assignments": {
+				"groups": [],
+				"users": []
+			}
+		},
+		{
+			"name": "Fork1",
+			"isIdle": false,
+			"onEnterActions": [],
+			"onExitActions": [],
+			"transitions": [
+				{
+					"condition": "true",
+					"nextState": "Path1"
+				},
+				{
+					"condition": "true",
+					"nextState": "Path2"
+				},
+				{
+					"condition": "true",
+					"nextState": "Join1"
+				}
+			],
+			"assignments": {
+				"groups": [],
+				"users": []
+			}
+		},
+		{
+			"name": "Path1",
+			"isIdle": true,
+			"onEnterActions": [],
+			"onExitActions": [],
+			"transitions": [
+				{
+					"condition": "event == \"ContinuePath1\"",
+					"nextState": ""
+				},
+				{
+					"condition": "event == \"LoopPath1\"",
+					"nextState": "Path1"
+				}
+			],
+			"assignments": {
+				"users": [],
+				"groups": []
+			}
+		},
+		{
+			"name": "Path2",
+			"isIdle": true,
+			"onEnterActions": [],
+			"onExitActions": [],
+			"transitions": [
+				{
+					"condition": "event == \"ContinuePath2\"",
+					"nextState": ""
+				},
+				{
+					"condition": "event == \"LoopPath2\"",
+					"nextState": "Path2"
+				}
+			],
+			"assignments": {
+				"users": [],
+				"groups": []
+			}
+		},
+		{
+			"name": "Join1",
+			"isIdle": false,
+			"type": "join",
+			"onEnterActions": [],
+			"onExitActions": [],
+			"dependsOn": ["Path1", "Path2"],
+			"transitions": [
+				{
+					"condition": "true",
+					"nextState": "End"
+				}
+			],
+			"assignments": {
+				"users": [],
+				"groups": []
+			}
+		},
+		{
+			"name": "End",
+			"onEnterActions": [],
+			"onExitActions": [],
+			"transitions": [],
+			"assignments": {
+				"groups": [],
+				"users": []
+			}
+		}
+	]
+}

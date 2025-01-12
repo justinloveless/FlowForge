@@ -3,7 +3,7 @@ POST {{baseurl}}/workflow/{{workflowInstanceId}}/trigger?actorId=role_admin
 Content-Type: application/json
 
 {
-	"eventName": "Cancelled",
+	"eventName": "Cancel",
 	"eventData": {}
 }
 

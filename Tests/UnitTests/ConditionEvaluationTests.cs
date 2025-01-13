@@ -82,7 +82,8 @@ public class ConditionEvaluationTests
     {
         _variableUrlMappings.AddMapping(variableName, "https://some/url/template/with/{instanceId}");
         _dataProvider.Setup(d =>
-                d.GetDataAsync(It.IsAny<string>(), It.IsAny<WorkflowInstanceId>(), It.IsAny<Dictionary<string, object>>()))
+                d.GetDataAsync(It.IsAny<string>(), It.IsAny<WorkflowInstanceId>(), 
+                    It.IsAny<Dictionary<string, object>>(), It.IsAny<Dictionary<string, object>>()))
             .Returns(Task.FromResult(valueToReturn));
 
         var instance = new WorkflowInstance()

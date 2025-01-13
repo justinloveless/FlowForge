@@ -35,7 +35,6 @@ public class DefaultAssignmentResolver : IAssignmentResolver
         // Add users from groups
         foreach (var group in state.Assignments.Groups)
         {
-            // replace with logic to get all users in a given group
             assignedUsers.Add(group);
         }
         

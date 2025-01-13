@@ -42,6 +42,7 @@ internal class ConditionEngine(
         var fetchedVariables = await FetchMissingVariablesAsync(
             unknownIdentifiers, 
             instance?.Id ?? new WorkflowInstanceId(Guid.Empty), 
+            instance?.WorkflowData ?? new Dictionary<string, object>(),
             instance?.StateData ?? new Dictionary<string, object>());
         foreach (var variable in fetchedVariables)
         {
@@ -78,6 +79,7 @@ internal class ConditionEngine(
     private async Task<Dictionary<string, object>> FetchMissingVariablesAsync(
         IEnumerable<string> variables,
         WorkflowInstanceId instanceId,
+        Dictionary<string, object> instanceData,
         Dictionary<string, object> stateData)
     {
         var fetchedData = new Dictionary<string, object>();
@@ -95,7 +97,7 @@ internal class ConditionEngine(
                 throw new InvalidOperationException($"No URL mapping found for variable '{variable}'.");
             }
             
-            var value = await dataProvider.GetDataAsync(url, instanceId, stateData);
+            var value = await dataProvider.GetDataAsync(url, instanceId, instanceData, stateData);
             
             fetchedData[variable] = value;
         }

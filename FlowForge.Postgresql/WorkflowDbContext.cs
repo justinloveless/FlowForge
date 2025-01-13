@@ -1,8 +1,6 @@
 ﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using FlowForge;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace FlowForge.Postgresql;
 
@@ -11,11 +9,8 @@ public class WorkflowDbContext : DbContext
     public DbSet<WorkflowDefinition> WorkflowDefinitions { get; set; }
     public DbSet<WorkflowInstance> WorkflowInstances { get; set; }
     public DbSet<WorkflowEvent> WorkflowEvents { get; set; }
+    public DbSet<ScheduleEvent> ScheduleEvents { get; set; }
 
-    // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    // {
-    //     optionsBuilder.ConfigureWarnings((s) => s.Log(RelationalEventId.PendingModelChangesWarning));
-    // }
     public WorkflowDbContext(DbContextOptions<WorkflowDbContext> options) : base(options)
     {
         
@@ -26,6 +21,7 @@ public class WorkflowDbContext : DbContext
         modelBuilder.Entity<WorkflowDefinition>().ToTable("WorkflowDefinitions");
         modelBuilder.Entity<WorkflowInstance>().ToTable("WorkflowInstances");
         modelBuilder.Entity<WorkflowEvent>().ToTable("WorkflowEvents");
+        modelBuilder.Entity<ScheduleEvent>().ToTable("ScheduleEvents");
 
         modelBuilder.Entity<WorkflowDefinition>(entity =>
             {
@@ -146,8 +142,24 @@ public class WorkflowDbContext : DbContext
                     value => new WorkflowDefinitionId(value) // Convert Guid to WorkflowInstanceId
                 );
         });
-        
-        
-        
+
+        modelBuilder.Entity<ScheduleEvent>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id)
+                .HasConversion(
+                    id => id.Value,
+                    value => new ScheduleEventId(value)
+                );
+            entity.Property(e => e.InstanceId)
+                .HasConversion(
+                    id => id.Value,      
+                    value => new WorkflowInstanceId(value)
+                );
+            
+        });
+
+
+
     }
 }

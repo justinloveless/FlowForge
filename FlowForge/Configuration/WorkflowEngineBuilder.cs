@@ -30,6 +30,12 @@ public class WorkflowEngineBuilder
         _services.AddScoped<IEventRepository, T>();
         return this;
     }
+
+    public WorkflowEngineBuilder UseSchedulingRepository<T>() where T : class, ISchedulingRepository
+    {
+        _services.AddScoped<ISchedulingRepository, T>();
+        return this;
+    }
     public WorkflowEngineBuilder UseEventRepository<T>(Func<IServiceProvider, T> implementationFactory) where T : class, IEventRepository
     {
         _services.AddScoped<IEventRepository, T>(implementationFactory);

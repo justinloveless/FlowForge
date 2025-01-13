@@ -4,8 +4,11 @@ namespace FlowForge;
 
 public class TimerAction : WorkflowAction, IWorkflowAction
 {
-    public TimerAction()
+    private readonly IServiceProvider _provider;
+
+    public TimerAction(IServiceProvider provider)
     {
+        _provider = provider;
         Type = "Timer";
         Parameters = new Dictionary<string, object>();
     }
@@ -40,19 +43,27 @@ public class TimerAction : WorkflowAction, IWorkflowAction
         }
 
         var resumeTime = triggerTime.Value;
-        // Simulate timer
-        _ = Task.Run(async () =>
+        var localServices = serviceProvider.CreateScope().ServiceProvider;
+        var _schedulerHostedService = localServices.GetRequiredService<SchedulerHostedService>();
+        await _schedulerHostedService.AddEventAsync(new ScheduleEvent
         {
-            var localServices = serviceProvider.CreateScope().ServiceProvider;
-            var delay = resumeTime - DateTime.UtcNow;
-            if (delay > TimeSpan.Zero)
-            {
-                await Task.Delay(delay);
-            }
-
-            var engine = localServices.GetRequiredService<IWorkflowEngine>();
-            await engine.TriggerEventAsync(instance.Id, "Resume", new Dictionary<string, object>(), "system");
+            EventName = "Resume", 
+            InstanceId = instance.Id, 
+            ResumeTime = resumeTime,
         });
+        // Simulate timer
+        // _ = Task.Run(async () =>
+        // {
+        //     var localServices = serviceProvider.CreateScope().ServiceProvider;
+        //     var delay = resumeTime - DateTime.UtcNow;
+        //     if (delay > TimeSpan.Zero)
+        //     {
+        //         await Task.Delay(delay);
+        //     }
+        //
+        //     var engine = localServices.GetRequiredService<IWorkflowEngine>();
+        //     await engine.TriggerEventAsync(instance.Id, "Resume", new Dictionary<string, object>(), "system");
+        // });
         
     }
 }

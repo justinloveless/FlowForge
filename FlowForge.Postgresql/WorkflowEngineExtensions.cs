@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using FlowForge;
 
 namespace FlowForge.Postgresql;
 
@@ -13,6 +12,7 @@ public static class WorkflowEngineExtensions
         
         builder.UseWorkflowRepository<PostgresqlWorkflowRepository>();
         builder.UseEventRepository<PostgresqlEventRepository>();
+        builder.UseSchedulingRepository<PostgresqlScheduleRepository>();
         
         builder.Services.AddHostedService<MigrationHostedService>();
         return builder;

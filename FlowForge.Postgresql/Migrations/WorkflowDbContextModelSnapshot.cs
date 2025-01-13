@@ -23,6 +23,26 @@ namespace FlowForge.Postgresql.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("FlowForge.ScheduleEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EventName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("InstanceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ResumeTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ScheduleEvents", (string)null);
+                });
+
             modelBuilder.Entity("FlowForge.WorkflowDefinition", b =>
                 {
                     b.Property<Guid>("Id")

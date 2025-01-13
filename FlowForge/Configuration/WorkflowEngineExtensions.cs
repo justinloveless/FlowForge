@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace FlowForge;
@@ -19,7 +18,8 @@ public static class WorkflowEngineExtensions
             
             registry.Register("Webhook", parameters => new WebhookAction());
             registry.Register("EmitEvent", parameters => new EmitEventAction());
-            registry.Register("Timer", parameters => new TimerAction());
+            registry.Register("Timer", parameters => 
+                new TimerAction(provider));
             return registry;
         });
         // Ensure HttpClient is registered
@@ -35,7 +35,8 @@ public static class WorkflowEngineExtensions
         
         // Default implementations
         services.TryAddSingleton<IWorkflowRepository, InMemoryWorkflowRepository>();
-        services.TryAddSingleton<IEventRepository, InMemoryEventRepository>();        
+        services.TryAddSingleton<IEventRepository, InMemoryEventRepository>();      
+        services.TryAddSingleton<ISchedulingRepository, InMemoryScheduleRepository>();
         services.TryAddSingleton<IWorkflowEventQueuePublisher, InMemoryWorkflowEventQueue>();
         services.TryAddScoped<IAssignmentResolver, DefaultAssignmentResolver>();
         services.TryAddScoped<IEventLogger, ConsoleEventLogger>();
@@ -47,6 +48,8 @@ public static class WorkflowEngineExtensions
         
         services.AddScoped<IWebhookHandler, WebhookHandler>();
         services.AddScoped<IWorkflowEngine, WorkflowEngine>();
+        services.AddSingleton<SchedulerHostedService>();
+        services.AddHostedService<SchedulerHostedService>();
         
         // Register the facade
         services.AddScoped<FlowForge>();

@@ -39,4 +39,10 @@
       </Reference>
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Update="WorkflowEngine.cs">
+        <Generator>MSBuild:GenerateCodeFromAttributes</Generator>
+      </Compile>
+    </ItemGroup>
+
 </Project>

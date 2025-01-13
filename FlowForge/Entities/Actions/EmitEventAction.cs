@@ -25,16 +25,8 @@ public class EmitEventAction : IWorkflowAction
         
         var eventLogDetails =
             $"Active states: {string.Join(", ", instance.ActiveStates)}, Event Type Emitted: {eventType}, EventData: {JsonSerializer.Serialize(eventData)}";
-        await eventLogger.LogEventAsync($"{_type}Executed", instance.Id, eventLogDetails);
+        await eventLogger.LogEventAsync($"{_type}Executed", instance.Id, instance.DefinitionId, eventLogDetails, activeStates: instance.ActiveStates);
 
-        await eventRepository.AddEventAsync(new WorkflowEvent
-        {
-            WorkflowInstanceId = instance.Id,
-            WorkflowDefinitionId = instance.DefinitionId,
-            EventType = $"{_type}Executed",
-            ActiveStates = instance.ActiveStates,
-            Details = eventLogDetails,
-            Timestamp = DateTime.UtcNow
-        });
+        await eventRepository.AddEventAsync(new WorkflowEvent($"{_type}Executed", instance, eventLogDetails));
     }
 }

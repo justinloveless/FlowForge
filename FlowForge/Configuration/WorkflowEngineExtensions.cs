@@ -41,6 +41,7 @@ public static class WorkflowEngineExtensions
         services.TryAddScoped<IAssignmentResolver, DefaultAssignmentResolver>();
         services.TryAddScoped<IEventLogger, ConsoleEventLogger>();
         services.TryAddScoped<IDataProvider, DefaultDataProvider>();
+        services.AddScoped<IConditionEngine, ConditionEngine>();
         
         var variableMappings = new VariableUrlMappings();
         configureMappings?.Invoke(variableMappings);

@@ -1,0 +1,35 @@
+﻿### GET request to example server
+POST {{baseurl}}/workflow/{{workflowInstanceId}}/trigger?actorId=justin
+Content-Type: application/json
+
+{
+	"eventName": "ContinuePath1",
+	"eventData": {}
+}
+
+### GET request to example server
+POST {{baseurl}}/workflow/{{workflowInstanceId}}/trigger?actorId=justin
+Content-Type: application/json
+
+{
+	"eventName": "ContinuePath2",
+	"eventData": {}
+}
+
+### GET request to example server
+POST {{baseurl}}/workflow/{{workflowInstanceId}}/trigger?actorId=justin
+Content-Type: application/json
+
+{
+	"eventName": "LoopPath1",
+	"eventData": {}
+}
+
+### GET request to example server
+POST {{baseurl}}/workflow/{{workflowInstanceId}}/trigger?actorId=justin
+Content-Type: application/json
+
+{
+	"eventName": "LoopPath2",
+	"eventData": {}
+}

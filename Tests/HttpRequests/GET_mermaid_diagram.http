@@ -1,6 +1,6 @@
 ﻿### GET request to example server
-GET {{baseurl}}/Workflow/mermaid/generate/{{workflowDefinitionId}}
+GET {{baseurl}}/Workflow/mermaid/generate/3e4cd5e6-0b85-4c90-b30e-ed1794e85168
 
 ###
 
-GET {{baseurl}}/Workflow/mermaid/generate/{{workflowDefinitionId}}?showDetails=true
+GET {{baseurl}}/Workflow/mermaid/generate/3e4cd5e6-0b85-4c90-b30e-ed1794e85168?showDetails=true

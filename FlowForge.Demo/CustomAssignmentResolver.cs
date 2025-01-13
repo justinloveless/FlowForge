@@ -12,7 +12,9 @@ public class CustomAssignmentResolver(IWorkflowRepository workflowRepository) : 
         if (state == null)
             return false;
 
-        return state.Assignments.Users.Contains(userId) || state.Assignments.Groups.Contains(userId);
+        return (state.Assignments.Users.Count == 0 && state.Assignments.Groups.Count == 0) 
+               || state.Assignments.Users.Contains(userId) 
+               || state.Assignments.Groups.Contains(userId);
     }
 
     public async Task<IEnumerable<string>> GetAssignmentsAsync(string stateName, WorkflowInstanceId workflowInstanceId)

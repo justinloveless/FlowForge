@@ -6,7 +6,7 @@ namespace Tests.UnitTests;
 
 public class ConditionEvaluationTests
 {
-    private readonly FlowForge.WorkflowEngine _engine;
+    private readonly WorkflowEngine _engine;
     private readonly Mock<IWorkflowRepository> _workflowRepository;
     private readonly Mock<IWorkflowEventQueuePublisher> _workflowEventQueue;
     private readonly Mock<IEventLogger> _eventLogger;
@@ -31,7 +31,7 @@ public class ConditionEvaluationTests
         _serviceProvider = new Mock<IServiceProvider>();
         _workflowActionRegistry = new WorkflowActionRegistry();
         
-        _engine = new FlowForge.WorkflowEngine(
+        _engine = new WorkflowEngine(
             _workflowRepository.Object, 
             _eventLogger.Object,
             _workflowEventQueue.Object,
@@ -65,7 +65,7 @@ public class ConditionEvaluationTests
             Id = new WorkflowInstanceId(Guid.Empty),
             StateData = value,
         };
-        var result = await _engine.EvaluateCondition(condition, instance);
+        var result = await _engine.EvaluateCondition(condition, instance, "", "");
         result.Should().Be(expectedResult);
         
     }
@@ -88,7 +88,7 @@ public class ConditionEvaluationTests
             Id = new WorkflowInstanceId(Guid.Empty),
             StateData = value,
         };
-        Assert.ThrowsAnyAsync<Exception>(async () => await _engine.EvaluateCondition(condition, instance));
+        Assert.ThrowsAnyAsync<Exception>(async () => await _engine.EvaluateCondition(condition, instance, "", ""));
         
     }
 
@@ -113,7 +113,7 @@ public class ConditionEvaluationTests
             Id = new WorkflowInstanceId(Guid.Empty),
             StateData = stateData,
         };
-        var result = await _engine.EvaluateCondition(condition, instance);
+        var result = await _engine.EvaluateCondition(condition, instance, "", "");
         result.Should().Be(expectedResult);
     }
 

@@ -1,9 +1,9 @@
 ﻿### GET request to example server
-POST {{baseurl}}/workflow/{{workflowInstanceId}}/trigger?actorId=managers
+POST {{baseurl}}/workflow/{{workflowInstanceId}}/trigger?actorId=justin
 Content-Type: application/json
 
 {
-	"eventName": "Approved",
+	"eventName": "Submit",
 	"eventData": {
 		"newData": "Justin approves this message",
 		"UserState": {

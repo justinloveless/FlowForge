@@ -38,7 +38,7 @@ public class WebhookAction : WorkflowAction, IWorkflowAction
         var updatedStateData = await webhookHandler.CallWebhookAsync(url, headers, instance);
         instance.StateData = updatedStateData;
         var eventLogDetails =
-            $"State: {instance.CurrentState}, Webhook: {url}, StateData: {JsonSerializer.Serialize(updatedStateData)}";
+            $"State: {string.Join(", ", instance.ActiveStates)}, Webhook: {url}, StateData: {JsonSerializer.Serialize(updatedStateData)}";
         await eventLogger.LogEventAsync($"{Type}Executed", instance.Id, eventLogDetails);
 
         await eventRepository.AddEventAsync(new WorkflowEvent
@@ -46,7 +46,7 @@ public class WebhookAction : WorkflowAction, IWorkflowAction
             WorkflowInstanceId = instance.Id,
             WorkflowDefinitionId = instance.DefinitionId,
             EventType = $"{Type}Executed",
-            CurrentState = instance.CurrentState,
+            ActiveStates = instance.ActiveStates,
             Details = eventLogDetails,
             Timestamp = DateTime.UtcNow
         });

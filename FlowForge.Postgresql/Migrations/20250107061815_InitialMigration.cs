@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -18,7 +19,8 @@ namespace FlowForge.Postgresql.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    InitialState = table.Column<string>(type: "text", nullable: false)
+                    InitialState = table.Column<string>(type: "text", nullable: false),
+                    IsEventDriven = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
@@ -31,8 +33,9 @@ namespace FlowForge.Postgresql.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     WorkflowInstanceId = table.Column<Guid>(type: "uuid", nullable: false),
+                    WorkflowDefinitionId = table.Column<Guid>(type: "uuid", nullable: false),
                     EventType = table.Column<string>(type: "text", nullable: false),
-                    CurrentState = table.Column<string>(type: "text", nullable: false),
+                    ActiveStates = table.Column<List<string>>(type: "text[]", nullable: false),
                     Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Details = table.Column<string>(type: "text", nullable: false)
                 },
@@ -48,7 +51,7 @@ namespace FlowForge.Postgresql.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     DefinitionId = table.Column<Guid>(type: "uuid", nullable: false),
                     WorkflowName = table.Column<string>(type: "text", nullable: false),
-                    CurrentState = table.Column<string>(type: "text", nullable: false),
+                    ActiveStates = table.Column<List<string>>(type: "text[]", nullable: false),
                     StateData = table.Column<string>(type: "jsonb", nullable: false),
                     WorkflowData = table.Column<string>(type: "jsonb", nullable: false)
                 },
@@ -65,8 +68,8 @@ namespace FlowForge.Postgresql.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    Webhook = table.Column<string>(type: "text", nullable: false),
-                    TriggerWebhookOnExternalEvent = table.Column<bool>(type: "boolean", nullable: false),
+                    OnEnterActions = table.Column<string>(type: "jsonb", nullable: true),
+                    OnExitActions = table.Column<string>(type: "jsonb", nullable: true),
                     IsIdle = table.Column<bool>(type: "boolean", nullable: false),
                     Assignments_Users = table.Column<string>(type: "jsonb", nullable: false),
                     Assignments_Groups = table.Column<string>(type: "jsonb", nullable: false)

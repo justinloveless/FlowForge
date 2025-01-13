@@ -10,7 +10,7 @@ public class WebhookController : ControllerBase
     [HttpPost("test")]
     public IActionResult Post([FromBody] WebhookBody body)
     {
-        Console.WriteLine($"Received Webhook post for workflow {body.WorkflowName} ({body.InstanceId}). Current state is {body.CurrentState}. State data is {JsonSerializer.Serialize(body.StateData)}");
+        Console.WriteLine($"Received Webhook post for workflow {body.WorkflowName} ({body.InstanceId}). Current active states are {string.Join(", ", body.ActiveStates)}. State data is {JsonSerializer.Serialize(body.StateData)}");
         return Ok(body.StateData);
     }
 

@@ -4,7 +4,9 @@ public class FlowForge(
     IWorkflowEngine workflowEngine,
     IWorkflowRepository workflowRepository,
     IEventRepository eventRepository,
-    IAssignmentResolver assignmentResolver)
+    IAssignmentResolver assignmentResolver,
+    WorkflowActionRegistry actionRegistry,
+    VariableUrlMappings variableUrlMappings)
 {
     // Workflow engine methods
     public Task RegisterWorkflowAsync(WorkflowDefinition workflow) => workflowEngine.RegisterWorkflowAsync(workflow);
@@ -34,6 +36,13 @@ public class FlowForge(
     
     public async Task<IEnumerable<string>> GetAssignedActorsAsync(string stateName, WorkflowInstanceId workflowInstanceId) =>
         await assignmentResolver.GetAssignmentsAsync(stateName, workflowInstanceId);
+    
+    public async Task RegisterCustomAction<TAction>(string type, Func<IDictionary<string, object>, TAction> factory)
+        where TAction : IWorkflowAction => actionRegistry.Register(type, factory);
+
+    public List<string> GetRegisteredActions() => actionRegistry.RegisteredActions;
+    
+    public async Task MapDataProviderUrl(string variableName, string urlTemplate) => variableUrlMappings.AddMapping(variableName, urlTemplate);
 
 
 

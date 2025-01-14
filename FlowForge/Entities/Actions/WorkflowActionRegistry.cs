@@ -9,6 +9,8 @@ public class WorkflowActionRegistry
     {
         _actions[type] = parameters => factory(parameters);
     }
+    
+    public List<string> RegisteredActions => _actions.Keys.ToList(); 
 
     internal IWorkflowAction Create(string type, IDictionary<string, object> parameters)
     {

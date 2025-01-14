@@ -6,42 +6,19 @@ namespace Tests.UnitTests;
 
 public class ConditionEvaluationTests
 {
-    private readonly WorkflowEngine _engine;
-    private readonly Mock<IWorkflowRepository> _workflowRepository;
-    private readonly Mock<IWorkflowEventQueuePublisher> _workflowEventQueue;
     private readonly Mock<IEventLogger> _eventLogger;
-    private readonly Mock<IEventRepository> _eventRepository;
     private readonly Mock<IDataProvider> _dataProvider;
-    private VariableUrlMappings _variableUrlMappings;
-    private WorkflowEngineOptions _workflowOptions;
-    private readonly Mock<IAssignmentResolver> _assignmentResolver;
-    private readonly Mock<IServiceProvider> _serviceProvider;
-    private readonly WorkflowActionRegistry _workflowActionRegistry;
+    private readonly VariableUrlMappings _variableUrlMappings;
+    private readonly ConditionEngine _conditionEngine;
     
     public ConditionEvaluationTests()
     {
-        _workflowRepository = new Mock<IWorkflowRepository>();
-        _workflowEventQueue = new Mock<IWorkflowEventQueuePublisher>();
         _eventLogger = new Mock<IEventLogger>();
-        _eventRepository = new Mock<IEventRepository>();
         _dataProvider = new Mock<IDataProvider>();
         _variableUrlMappings = new VariableUrlMappings();
-        _workflowOptions = new WorkflowEngineOptions();
-        _assignmentResolver = new Mock<IAssignmentResolver>();
-        _serviceProvider = new Mock<IServiceProvider>();
-        _workflowActionRegistry = new WorkflowActionRegistry();
         
-        _engine = new WorkflowEngine(
-            _workflowRepository.Object, 
-            _eventLogger.Object,
-            _workflowEventQueue.Object,
-            _eventRepository.Object,
-            _dataProvider.Object,
-            _variableUrlMappings,
-            _workflowOptions,
-            _assignmentResolver.Object,
-            _serviceProvider.Object,
-            _workflowActionRegistry);
+        _conditionEngine =
+            new ConditionEngine(_eventLogger.Object, _dataProvider.Object, _variableUrlMappings);
     }
 
     public static IEnumerable<object[]> GoodData()
@@ -65,7 +42,7 @@ public class ConditionEvaluationTests
             Id = new WorkflowInstanceId(Guid.Empty),
             StateData = value,
         };
-        var result = await _engine.EvaluateCondition(condition, instance, "", "");
+        var result = await _conditionEngine.EvaluateCondition(condition, instance, "", "");
         result.Should().Be(expectedResult);
         
     }
@@ -88,7 +65,7 @@ public class ConditionEvaluationTests
             Id = new WorkflowInstanceId(Guid.Empty),
             StateData = value,
         };
-        Assert.ThrowsAnyAsync<Exception>(async () => await _engine.EvaluateCondition(condition, instance, "", ""));
+        Assert.ThrowsAnyAsync<Exception>(async () => await _conditionEngine.EvaluateCondition(condition, instance, "", ""));
         
     }
 
@@ -105,7 +82,8 @@ public class ConditionEvaluationTests
     {
         _variableUrlMappings.AddMapping(variableName, "https://some/url/template/with/{instanceId}");
         _dataProvider.Setup(d =>
-                d.GetDataAsync(It.IsAny<string>(), It.IsAny<WorkflowInstanceId>(), It.IsAny<Dictionary<string, object>>()))
+                d.GetDataAsync(It.IsAny<string>(), It.IsAny<WorkflowInstanceId>(), 
+                    It.IsAny<Dictionary<string, object>>(), It.IsAny<Dictionary<string, object>>()))
             .Returns(Task.FromResult(valueToReturn));
 
         var instance = new WorkflowInstance()
@@ -113,7 +91,7 @@ public class ConditionEvaluationTests
             Id = new WorkflowInstanceId(Guid.Empty),
             StateData = stateData,
         };
-        var result = await _engine.EvaluateCondition(condition, instance, "", "");
+        var result = await _conditionEngine.EvaluateCondition(condition, instance, "", "");
         result.Should().Be(expectedResult);
     }
 

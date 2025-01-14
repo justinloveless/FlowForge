@@ -22,16 +22,8 @@ public class CustomBehaviorAction
         
         var eventLogDetails =
             $"Custom behavior {Type} executed. Active States: {string.Join(", ", instance.ActiveStates)}, Parameters: {JsonSerializer.Serialize(parameters)}";
-        await eventLogger.LogEventAsync($"{Type}Executed", instance.Id, eventLogDetails);
+        await eventLogger.LogEventAsync($"{Type}Executed", instance.Id, instance.DefinitionId, eventLogDetails, activeStates: instance.ActiveStates);
 
-        await eventRepository.AddEventAsync(new WorkflowEvent
-        {
-            WorkflowInstanceId = instance.Id,
-            WorkflowDefinitionId = instance.DefinitionId,
-            EventType = $"{Type}Executed",
-            ActiveStates = instance.ActiveStates,
-            Details = eventLogDetails,
-            Timestamp = DateTime.UtcNow
-        });
+        await eventRepository.AddEventAsync(new WorkflowEvent($"{Type}Executed", instance, eventLogDetails));
     }
 }

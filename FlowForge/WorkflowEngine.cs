@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
-using Jint;
+using FlowForge.Enums;
 
 [assembly: InternalsVisibleTo("Tests")]
 namespace FlowForge;
@@ -11,12 +11,11 @@ internal class WorkflowEngine(
     IEventLogger eventLogger,
     IWorkflowEventQueuePublisher eventQueuePublisher,
     IEventRepository eventRepository,
-    IDataProvider dataProvider,
-    VariableUrlMappings variableUrlMappings,
     WorkflowEngineOptions workflowOptions,
     IAssignmentResolver assignmentResolver,
     IServiceProvider serviceProvider,
-    WorkflowActionRegistry actionRegistry)
+    WorkflowActionRegistry actionRegistry,
+    IConditionEngine conditionEngine)
     : IWorkflowEngine
 {
     private readonly WorkflowEngineOptions _workflowOptions = workflowOptions;
@@ -49,10 +48,10 @@ internal class WorkflowEngine(
         foreach (var stateDefinition in activeStates)
         {
         
-            if (await DependenciesNotSatisfied(workflowInstance, stateDefinition)) continue;
+            if (!await DependenciesSatisfied(workflowInstance, stateDefinition)) continue;
             
-            var matchingTransition = stateDefinition.Transitions.FirstOrDefault(t =>
-                EvaluateCondition(t.Condition, workflowInstance, stateDefinition.Name, eventName).Result);
+            var matchingTransition = stateDefinition.Transitions.FirstOrDefault(t => 
+                conditionEngine.EvaluateCondition(t.Condition, workflowInstance, stateDefinition.Name, eventName).Result);
             if (matchingTransition == null) continue;
             
             // Transition to the next state
@@ -74,13 +73,14 @@ internal class WorkflowEngine(
             var initialState = workflowDefinition.States.FirstOrDefault(s => s.Name == workflowDefinition.InitialState);
             if (initialState is null) continue;
 
-            var shouldStart = initialState.Transitions.Any( t => EvaluateCondition(t.Condition, 
+            var shouldStart = initialState.Transitions.Any( t => conditionEngine.EvaluateCondition(t.Condition, 
                 null, initialState.Name, eventName).Result);
             if (!shouldStart) continue;
             
-            await LogEvent("WorkflowStartedByEvent", null, workflowDefinition.Id, 
+            await eventLogger.LogEventAsync(StandardEvents.WorkflowStartedByEvent.ToString(), null, workflowDefinition.Id, 
                 $"Workflow {workflowDefinition.Name} started by event {eventName}", activeStates: [initialState.Name]);
-            await StartWorkflowAsync(workflowDefinition, eventData as Dictionary<string, object>, eventName);
+            var initialData = eventData as Dictionary<string, object> ?? new Dictionary<string, object>();
+            await StartWorkflowAsync(workflowDefinition, initialData, eventName);
 
         }
     }
@@ -90,7 +90,8 @@ internal class WorkflowEngine(
         var errorState = new ErrorState();
         workflow.States.Add(errorState); // always add a default error state
         await repository.RegisterWorkflowAsync(workflow);
-        await LogEvent("WorkflowRegistered", null, workflow.Id, $"Workflow {workflow.Name} registered");
+        await eventLogger.LogEventAsync(StandardEvents.WorkflowRegistered.ToString(), null, workflow.Id, 
+            $"Workflow {workflow.Name} registered");
 
     }
 
@@ -99,44 +100,40 @@ internal class WorkflowEngine(
         var workflowDefinition = await repository.GetWorkflowDefinitionAsync(workflowId);
         return await StartWorkflowAsync(workflowDefinition, initialData, eventName);
     }
-    
-    public async Task<WorkflowInstanceId> StartWorkflowAsync(WorkflowDefinition workflowDefinition, Dictionary<string, object> initialData, string? eventName = null)
+
+    private async Task<WorkflowInstanceId> StartWorkflowAsync(WorkflowDefinition workflowDefinition, Dictionary<string, object> initialData, string? eventName = null)
     {
         var instance = await repository.StartWorkflowAsync(workflowDefinition.Id, initialData);
         var initialState = workflowDefinition.States.FirstOrDefault(s => s.Name == workflowDefinition.InitialState);
-        await LogEvent("WorkflowStarted", instance.Id, instance.DefinitionId,
+        await eventLogger.LogEventAsync(StandardEvents.WorkflowStarted.ToString(), instance.Id, instance.DefinitionId,
             $"Workflow {workflowDefinition.Id} started with ID {instance.Id}", activeStates: instance.ActiveStates);
         await ProcessStateAsync(instance, initialState, workflowDefinition, eventName);
         return instance.Id;
     }
 
-    public async Task ProcessStateAsync(WorkflowInstance instance, StateDefinition currentStateDefinition, 
-        WorkflowDefinition workflowDefinition, string? eventName = null)
+    public async Task ProcessStateAsync(WorkflowInstance instance, StateDefinition? currentStateDefinition, 
+        WorkflowDefinition? workflowDefinition, string? eventName = null)
     {
         try
         {
             // check state dependencies
-            if (await DependenciesNotSatisfied(instance, currentStateDefinition)) return;
+            if (!await DependenciesSatisfied(instance, currentStateDefinition)) return;
             
             // execute OnEnterActions
-            foreach (var action in currentStateDefinition.OnEnterActions)
-            {
-                var actionToExecute = actionRegistry.Create(action.Type, action.Parameters);
-                await actionToExecute.ExecuteAsync(instance, action.Parameters, serviceProvider);
-            }
+            await ExecuteOnEnterActions(instance, currentStateDefinition);
 
             if (eventName != null) instance.StateData["event"] = eventName;
 
             var transitionsCount = 0;
             foreach (var transition in currentStateDefinition.Transitions)
             {
-                if (await EvaluateCondition(transition.Condition, instance, currentStateDefinition.Name, eventName) ==
+                if (await conditionEngine.EvaluateCondition(transition.Condition, instance, currentStateDefinition.Name, eventName) ==
                     false) continue;
 
                 await TransitionStateAsync(instance, currentStateDefinition, transition.NextState,
                     workflowDefinition, transition.Condition);
                 transitionsCount++;
-                var newState = workflowDefinition.States.FirstOrDefault(s => s.Name == transition.NextState);
+                var newState = workflowDefinition?.States.FirstOrDefault(s => s.Name == transition.NextState);
                 if (newState == null) continue;
                 // recursively process the next state
                 await ProcessStateAsync(instance, newState, workflowDefinition);
@@ -144,7 +141,7 @@ internal class WorkflowEngine(
 
             if (transitionsCount == 0)
             {
-                await LogEvent("StateProcessed", instance.Id, instance.DefinitionId,
+                await eventLogger.LogEventAsync(StandardEvents.StateProcessed.ToString(), instance.Id, instance.DefinitionId,
                     $"State {currentStateDefinition.Name} processed with no transitions", currentStateDefinition.Name,
                     instance.ActiveStates);
             }
@@ -155,7 +152,7 @@ internal class WorkflowEngine(
             instance.ActiveStates = ["Error"];
             instance.StateData["previousStates"] = previousStates;
             await repository.UpdateWorkflowInstanceAsync(instance);
-            await LogEvent("ExceptionOccured", instance.Id, instance.DefinitionId,
+            await eventLogger.LogEventAsync(StandardEvents.ExceptionOccured.ToString(), instance.Id, instance.DefinitionId,
                 $"Exception occured in ProcessStateAsync: {e.Message}", 
                 currentStateDefinition.Name,
                 instance.ActiveStates);
@@ -163,36 +160,37 @@ internal class WorkflowEngine(
         }
     }
 
-    private async Task<bool> DependenciesNotSatisfied(WorkflowInstance instance, StateDefinition currentStateDefinition)
+    private async Task ExecuteOnEnterActions(WorkflowInstance instance, StateDefinition currentStateDefinition)
     {
-        if (currentStateDefinition.DependsOn.Count > 0)
+        foreach (var action in currentStateDefinition.OnEnterActions)
         {
-            // get states that have been deactivated
-            var deactivatedStates = (await eventRepository
-                    .GetEventsAsync(instance.Id, "StateTransitioned"))
-                .Select(e => e.SourceState).Distinct();
-            var currentlyActiveStates = instance.ActiveStates;
-            // if we depend on a state to be completed, it should exist in the deactivatedStates
-            // AND not exist in the currently active states (because it could have been reactivated)
-            foreach (var dependency in currentStateDefinition.DependsOn)
-            {
-                var dependencyInDeactivatedStates = deactivatedStates.Contains(dependency);
-                var dependencyInActiveStates = currentlyActiveStates.Contains(dependency);
-                if (!dependencyInDeactivatedStates || dependencyInActiveStates)
-                {
-                    return true;
-                }
-            }
-            await LogEvent("DependenciesSatisfied", instance.Id, instance.DefinitionId, 
-                details: $"Dependent states [{string.Join(", ", currentStateDefinition.DependsOn)}] have all been completed.", 
-                currentStateDefinition.Name, instance.ActiveStates);
+            var actionToExecute = actionRegistry.Create(action.Type, action.Parameters);
+            await actionToExecute.ExecuteAsync(instance, action.Parameters, serviceProvider);
         }
-
-        return false;
     }
 
-    private async Task TransitionStateAsync(WorkflowInstance instance, StateDefinition currentState, string targetStateName,
-        WorkflowDefinition workflowDefinition, string? conditionMet = null)
+    private async Task<bool> DependenciesSatisfied(WorkflowInstance instance, StateDefinition currentStateDefinition)
+    {
+        if (currentStateDefinition.DependsOn?.Count <= 0) return false;
+        // get states that have been deactivated
+        var deactivatedStates = (await eventRepository
+                .GetEventsAsync(instance.Id, StandardEvents.StateTransitioned.ToString()))
+            .Select(e => e.SourceState).Distinct();
+        var currentlyActiveStates = instance.ActiveStates;
+        // if we depend on a state to be completed, it should exist in the deactivatedStates
+        // AND not exist in the currently active states (because it could have been reactivated)
+        var satisfied = currentStateDefinition.DependsOn?
+            .All(dep => deactivatedStates.Contains(dep) && !currentlyActiveStates.Contains(dep));
+        if (satisfied == true) 
+            await eventLogger.LogEventAsync(StandardEvents.DependenciesSatisfied.ToString(), instance.Id, instance.DefinitionId, 
+                details: $"Dependent states [{string.Join(", ", currentStateDefinition.DependsOn ?? [])}] have all been completed.", 
+                currentStateDefinition.Name, instance.ActiveStates);
+
+        return satisfied == true;
+    }
+
+    private async Task TransitionStateAsync(WorkflowInstance instance, StateDefinition? currentState, string targetStateName,
+        WorkflowDefinition? workflowDefinition, string? conditionMet = null)
     {
         var targetStateExists = workflowDefinition.States.Any(s => s.Name == targetStateName);
         
@@ -207,70 +205,28 @@ internal class WorkflowEngine(
         }
         
         // Update the state
-        if (currentState.Name != targetStateName)
+        if (currentState?.Name != targetStateName)
         {
             if (!instance.ActiveStates.Contains(targetStateName) && targetStateExists)
                 instance.ActiveStates.Add(targetStateName);
-            instance.ActiveStates.Remove(currentState.Name);
+            instance.ActiveStates.Remove(currentState?.Name);
             await repository.UpdateWorkflowInstanceAsync(instance);
-            if (targetStateExists)
-            {
-                await LogEvent("StateTransitioned", instance.Id, instance.DefinitionId,
-                    $"Activated state {targetStateName}. Deactivated state {currentState.Name}. " +
-                    $"Condition met: {conditionMet}.", 
-                    currentState.Name, instance.ActiveStates);
-            }
-            else
-            {
-                await LogEvent("StateTransitioned", instance.Id, instance.DefinitionId, 
-                    $"Target state '{targetStateName}' does not exist in the workflow. " +
-                    $"Target state was not activated. Deactivated state {currentState.Name}. " +
-                    $"Condition met: {conditionMet}.",
-                    currentState.Name, instance.ActiveStates); 
-            }
+            await eventLogger.LogEventAsync(StandardEvents.StateTransitioned.ToString(), instance.Id, instance.DefinitionId,
+                $"{(targetStateExists 
+                        ? $"Activated state {targetStateName}." 
+                        : $"Target state '{targetStateName}' does not exist in the workflow. Target state was not activated."
+                    )} Deactivated state {currentState.Name}. Condition met: {conditionMet}.", 
+                currentState.Name, instance.ActiveStates);
         }
         
     }
 
-    private async Task<WorkflowEventId> LogEvent(string eventName, WorkflowInstanceId? instanceId, 
-        WorkflowDefinitionId? definitionId, string details, string? sourceState = null, List<string> activeStates = null)
-    {
-        await eventLogger.LogEventAsync(eventName, instanceId, details);
-        if (activeStates == null) activeStates = [];
-        
-
-        var workflowEvent = new WorkflowEvent
-        {
-            WorkflowInstanceId = instanceId ?? new WorkflowInstanceId(Guid.Empty),
-            WorkflowDefinitionId = definitionId ?? new WorkflowDefinitionId(Guid.Empty),
-            EventType = eventName,
-            ActiveStates = [..activeStates],
-            SourceState = sourceState ?? string.Empty,
-            Details = details,
-            Timestamp = DateTime.UtcNow
-        };
-        await eventRepository.AddEventAsync(workflowEvent);
-        return workflowEvent.Id;
-    }
-
     public async Task TriggerGlobalEventAsync(string eventName, Dictionary<string, object> eventData)
     {
-        await LogEvent(eventName, null, null,
+        await eventLogger.LogEventAsync(eventName, null, null,
             $"External global event {eventName} triggered. EventData: {JsonSerializer.Serialize(eventData)}");
         eventQueuePublisher.PublishEventAsync(null, eventName, eventData);
         
-    }
-
-    private async Task<WorkflowEventId> TriggerInternalEventAsync(WorkflowInstanceId instanceId, 
-        WorkflowDefinitionId definitionId, string currentState, List<string> activeStates, string eventName, 
-        Dictionary<string, object> eventData)
-    {
-        var eventId = await LogEvent(eventName, instanceId, definitionId,
-            $"Internal event {eventName} triggered. EventData: {JsonSerializer.Serialize(eventData)}",
-            currentState,
-            activeStates);
-        eventQueuePublisher.PublishEventAsync(instanceId, eventName, eventData);
-        return eventId;
     }
 
     public async Task TriggerEventAsync(WorkflowInstanceId instanceId, string eventName, Dictionary<string, object> eventData, string actorId, string state = null)
@@ -282,14 +238,14 @@ internal class WorkflowEngine(
         var workflowDefinition = await repository.GetWorkflowDefinitionAsync(instance.Id);
         var activeStates = workflowDefinition.States.Where(s => 
             (state != null && s.Name == state) || instance.ActiveStates.Contains(s.Name));
-        if (!activeStates.Any(s => CanUserActOnStateAsync(actorId, instance, s).Result))
+        if (!activeStates.Any(s => assignmentResolver.CanActOnStateAsync(s.Name, instance.Id, actorId).Result))
         {
-            await LogEvent("UnauthorizedActorTriggeredEvent", instanceId, instance.DefinitionId,
+            await eventLogger.LogEventAsync(StandardEvents.UnauthorizedActorTriggeredEvent.ToString(), instanceId, instance.DefinitionId,
                 $"Event: {eventName}. ActorId: {actorId}. EventData: {JsonSerializer.Serialize(eventData)}",
                 activeStates: instance.ActiveStates);
             return;
         }
-        await LogEvent(eventName, instanceId, instance.DefinitionId,
+        await eventLogger.LogEventAsync(eventName, instanceId, instance.DefinitionId,
             $"External event {eventName} triggered. EventData: {JsonSerializer.Serialize(eventData)}", 
             activeStates: instance.ActiveStates);
 
@@ -302,143 +258,4 @@ internal class WorkflowEngine(
         eventQueuePublisher.PublishEventAsync(instance.Id, eventName, eventData);
         
     }
-
-    internal async Task<bool> CanUserActOnStateAsync(string userId, WorkflowInstance instance, StateDefinition stateDefinition)
-    {
-        if (stateDefinition == null)
-        {
-            throw new InvalidOperationException($"State {instance.ActiveStates} not found in workflow {instance.WorkflowName}.");
-        }
-
-        return await assignmentResolver.CanActOnStateAsync(stateDefinition.Name, instance.Id, userId);
-    }
-
-    internal async Task<bool> EvaluateCondition(string condition, WorkflowInstance? instance, string actingState, string? eventName)
-    {
-        if (string.IsNullOrWhiteSpace(condition))
-            throw new ArgumentException("Condition cannot be null or empty.");
-
-        var jintInterpreter = new Engine();
-
-        if (instance is not null)
-        {
-            // register workflow data
-            foreach (var kvp in instance.WorkflowData)
-            {
-                jintInterpreter.SetValue(kvp.Key, kvp.Value);
-            }
-            
-            // Register variables from the state data
-            foreach (var kvp in instance.StateData)
-            {
-                jintInterpreter.SetValue(kvp.Key, kvp.Value);
-            }
-        }
-
-        // always set system variables after state data so they don't get overriden
-        // if (eventName is not null)
-        // {
-        // }
-        jintInterpreter.SetValue("event", eventName);
-        
-        // lastly, try to fetch variables via data providers
-        var extractedIdentifiers = IdentifierExtractor.DetectIdentifiers(condition);
-        var unknownIdentifiers = extractedIdentifiers
-            .Where(id => jintInterpreter.GetValue(id).IsUndefined())
-            .ToList();
-        var fetchedVariables = await FetchMissingVariablesAsync(
-            unknownIdentifiers, 
-            instance?.Id ?? new WorkflowInstanceId(Guid.Empty), 
-            instance?.StateData);
-        foreach (var variable in fetchedVariables)
-        {
-            var parsedValue = ParseJsonValue(variable.Value.ToString());
-            jintInterpreter.SetValue(variable.Key, parsedValue);
-        }
-        
-
-        try
-        {
-            // Evaluate the condition
-            var result = jintInterpreter.Evaluate(condition);
-            return Convert.ToBoolean(result);
-        }
-        catch (Exception ex)
-        {
-            // Log and handle errors
-            LogEvent("ConditionEvalFailure", instance.Id, instance.DefinitionId,
-                $"Condition evaluation failed: {condition}. Error: {ex.Message}", 
-                actingState,
-                instance.ActiveStates);
-            throw;
-        }
-    }
-    private object ParseJsonValue(string jsonString)
-    {
-        if (!IsJson(jsonString))
-            throw new JsonException($"JSON string is not a valid JSON. Received: {jsonString}");
-        
-        using var document = JsonDocument.Parse(jsonString);
-        return document.ConvertJsonToDictionary();
-    }
-
-    
-    private async Task<Dictionary<string, object>> FetchMissingVariablesAsync(
-        IEnumerable<string> variables,
-        WorkflowInstanceId instanceId,
-        Dictionary<string, object> stateData)
-    {
-        var fetchedData = new Dictionary<string, object>();
-
-        foreach (var variable in variables)
-        {
-            // Skip variables already in the state data
-            if (stateData.ContainsKey(variable))
-                continue;
-
-            // Query data providers for the missing variable
-            var url = variableUrlMappings.GetUrl(variable);
-            if (url is null)
-            {
-                throw new InvalidOperationException($"No URL mapping found for variable '{variable}'.");
-            }
-            
-            var value = await dataProvider.GetDataAsync(url, instanceId, stateData);
-            
-            fetchedData[variable] = value;
-        }
-
-        return fetchedData;
-    }
-    
-    private bool IsJson(string input)
-    {
-        if (string.IsNullOrWhiteSpace(input))
-            return false;
-
-        input = input.Trim();
-
-        // Check if the string starts and ends with JSON-specific characters
-        if ((input.StartsWith("{") && input.EndsWith("}")) || // JSON object
-            (input.StartsWith("[") && input.EndsWith("]")) || // JSON array
-            (input.StartsWith("\"") && input.EndsWith("\"")) || // JSON string
-            input.Equals("null", StringComparison.OrdinalIgnoreCase) || // JSON null
-            input.Equals("true", StringComparison.OrdinalIgnoreCase) || // JSON boolean
-            input.Equals("false", StringComparison.OrdinalIgnoreCase)) // JSON boolean
-        {
-            try
-            {
-                JsonDocument.Parse(input);
-                return true; // Successfully parsed, it's JSON
-            }
-            catch
-            {
-                // Failed to parse; it's not valid JSON
-                return false;
-            }
-        }
-
-        return false; // Not JSON
-    }
-
 }

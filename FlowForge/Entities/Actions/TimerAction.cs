@@ -51,19 +51,5 @@ public class TimerAction : WorkflowAction, IWorkflowAction
             InstanceId = instance.Id, 
             ResumeTime = resumeTime,
         });
-        // Simulate timer
-        // _ = Task.Run(async () =>
-        // {
-        //     var localServices = serviceProvider.CreateScope().ServiceProvider;
-        //     var delay = resumeTime - DateTime.UtcNow;
-        //     if (delay > TimeSpan.Zero)
-        //     {
-        //         await Task.Delay(delay);
-        //     }
-        //
-        //     var engine = localServices.GetRequiredService<IWorkflowEngine>();
-        //     await engine.TriggerEventAsync(instance.Id, "Resume", new Dictionary<string, object>(), "system");
-        // });
-        
     }
 }

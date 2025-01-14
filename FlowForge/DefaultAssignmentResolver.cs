@@ -1,6 +1,6 @@
 ﻿namespace FlowForge;
 
-public class DefaultAssignmentResolver : IAssignmentResolver
+internal class DefaultAssignmentResolver : IAssignmentResolver
 {
     private readonly IWorkflowRepository _workflowRepository;
 

@@ -5,6 +5,8 @@ public class FlowForge(
     IWorkflowRepository workflowRepository,
     IEventRepository eventRepository,
     IAssignmentResolver assignmentResolver,
+    IWebhookHandler webhookHandler,
+    IWebhookRegistry webhookRegistry,
     WorkflowActionRegistry actionRegistry,
     VariableUrlMappings variableUrlMappings)
 {
@@ -17,7 +19,7 @@ public class FlowForge(
     public Task TriggerEventAsync(WorkflowInstanceId instanceId, string eventName, Dictionary<string, object> eventData, string actorId) =>
         workflowEngine.TriggerEventAsync(instanceId, eventName, eventData, actorId);
     public Task TriggerGlobalEventAsync(string eventName, Dictionary<string, object> eventData) =>
-    workflowEngine.TriggerGlobalEventAsync(eventName, eventData);
+        workflowEngine.TriggerGlobalEventAsync(eventName, eventData);
 
     // Repository and event-specific methods
     public Task<IEnumerable<WorkflowEvent>> GetWorkflowEventsAsync(WorkflowInstanceId instanceId, string? eventType = null) =>
@@ -36,6 +38,12 @@ public class FlowForge(
     
     public async Task<IEnumerable<string>> GetAssignedActorsAsync(string stateName, WorkflowInstanceId workflowInstanceId) =>
         await assignmentResolver.GetAssignmentsAsync(stateName, workflowInstanceId);
+
+    public async Task<WebhookRegistrationId> RegisterWebhook(WorkflowDefinitionId definitionId, string eventName) =>
+        await webhookRegistry.RegisterWebhook(definitionId, eventName);
+
+    public async Task HandleWebhook(WebhookRegistrationId webhookId, Dictionary<string, object> webhookData) =>
+        await webhookHandler.HandleWebhookAsync(webhookId, webhookData);
     
     public async Task RegisterCustomAction<TAction>(string type, Func<IDictionary<string, object>, TAction> factory)
         where TAction : IWorkflowAction => actionRegistry.Register(type, factory);

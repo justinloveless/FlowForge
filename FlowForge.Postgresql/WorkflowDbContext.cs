@@ -10,6 +10,7 @@ public class WorkflowDbContext : DbContext
     public DbSet<WorkflowInstance> WorkflowInstances { get; set; }
     public DbSet<WorkflowEvent> WorkflowEvents { get; set; }
     public DbSet<ScheduleEvent> ScheduleEvents { get; set; }
+    public DbSet<WebhookRegistration> WebhookRegistrations { get; set; }
 
     public WorkflowDbContext(DbContextOptions<WorkflowDbContext> options) : base(options)
     {
@@ -22,6 +23,7 @@ public class WorkflowDbContext : DbContext
         modelBuilder.Entity<WorkflowInstance>().ToTable("WorkflowInstances");
         modelBuilder.Entity<WorkflowEvent>().ToTable("WorkflowEvents");
         modelBuilder.Entity<ScheduleEvent>().ToTable("ScheduleEvents");
+        modelBuilder.Entity<WebhookRegistration>().ToTable("WebhookRegistrations");
 
         modelBuilder.Entity<WorkflowDefinition>(entity =>
             {
@@ -157,6 +159,21 @@ public class WorkflowDbContext : DbContext
                     value => new WorkflowInstanceId(value)
                 );
             
+        });
+        
+        modelBuilder.Entity<WebhookRegistration>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id)
+                .HasConversion(
+                    id => id.Value, // Convert WorkflowInstanceId to Guid
+                    value => new WebhookRegistrationId(value) // Convert Guid to WorkflowInstanceId
+                );
+            entity.Property(e => e.WorkflowDefinitionId)
+                .HasConversion(
+                    id => id.Value,      // Convert WorkflowDefinitionId to Guid
+                    value => new WorkflowDefinitionId(value) // Convert Guid to WorkflowDefinitionId
+                );
         });
 
 

@@ -40,6 +40,15 @@ public class InMemoryWorkflowRepository : IWorkflowRepository
         return Task.FromResult(workflowInstance);
     }
 
+    public Task<IEnumerable<WorkflowInstance>> GetWorkflowInstancesByDefinitionIdAsync(
+        WorkflowDefinitionId definitionId)
+    {
+        var instances = _workflowInstances.Where(i => i.Value.DefinitionId == definitionId)
+            .Select(i => i.Value);
+        return Task.FromResult(instances);
+    }
+
+
     public Task<IEnumerable<WorkflowDefinition>> GetEventDrivenWorkflowDefinitionsAsync(string eventName)
     {
         return Task.FromResult(

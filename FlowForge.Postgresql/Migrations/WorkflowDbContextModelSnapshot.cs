@@ -43,6 +43,23 @@ namespace FlowForge.Postgresql.Migrations
                     b.ToTable("ScheduleEvents", (string)null);
                 });
 
+            modelBuilder.Entity("FlowForge.WebhookRegistration", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EventName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("WorkflowDefinitionId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WebhookRegistrations", (string)null);
+                });
+
             modelBuilder.Entity("FlowForge.WorkflowDefinition", b =>
                 {
                     b.Property<Guid>("Id")

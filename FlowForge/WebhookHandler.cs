@@ -2,15 +2,8 @@
 
 namespace FlowForge;
 
-internal class WebhookHandler: IWebhookHandler
+internal class WebhookHandler(HttpClient httpClient, IWebhookRegistry webhookRegistry, IWorkflowEngine engine) : IWebhookHandler
 {
-    private readonly HttpClient _httpClient;
-
-    public WebhookHandler(HttpClient httpClient)
-    {
-        _httpClient = httpClient;
-    }
-
     public async Task<Dictionary<string, object>> CallWebhookAsync(string webhookUrl, Dictionary<string, object> headers,
         WorkflowInstance instance)
     {
@@ -25,11 +18,22 @@ internal class WebhookHandler: IWebhookHandler
         {
             request.Headers.Add(hkey, headers[hkey].ToString());
         }
-        var res = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead);
+        var res = await httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead);
         res.EnsureSuccessStatusCode();
         
         var responseData = await res.Content.ReadFromJsonAsync<Dictionary<string, object>>();
         return responseData.ConvertJsonElements();
+    }
+
+    public async Task HandleWebhookAsync(WebhookRegistrationId webhookId, Dictionary<string, object> webhookData)
+    {
+        var webhook = await webhookRegistry.GetWebhookRegistrationAsync(webhookId);
+        if (webhook is null) return;
+
+        await engine.TriggerEventForWorkflowDefinitionAsync(webhook.WorkflowDefinitionId, webhook.EventName,
+            webhookData);
+
+
     }
 
     

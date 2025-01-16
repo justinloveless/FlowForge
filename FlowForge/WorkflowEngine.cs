@@ -228,13 +228,20 @@ internal class WorkflowEngine(
         eventQueuePublisher.PublishEventAsync(null, eventName, eventData);
         
     }
-
+    
+    public async Task TriggerEventForWorkflowDefinitionAsync(WorkflowDefinitionId definitionId, string eventName, Dictionary<string, object> eventData)
+    {
+        var instances = await repository.GetWorkflowInstancesByDefinitionIdAsync(definitionId);
+        var tasks = instances.Select(instance => TriggerEventAsync(instance.Id, eventName, eventData, actorId: "system")).ToList();
+        await Task.WhenAll(tasks);
+    }
+    
     public async Task TriggerEventAsync(WorkflowInstanceId instanceId, string eventName, Dictionary<string, object> eventData, string actorId, string state = null)
     {
         var instance = await repository.GetWorkflowInstanceAsync(instanceId);
         if (instance == null)
             throw new InvalidOperationException($"No workflow instance found with ID '{instanceId}'.");
-
+    
         var workflowDefinition = await repository.GetWorkflowDefinitionAsync(instance.Id);
         var activeStates = workflowDefinition.States.Where(s => 
             (state != null && s.Name == state) || instance.ActiveStates.Contains(s.Name));
@@ -248,7 +255,7 @@ internal class WorkflowEngine(
         await eventLogger.LogEventAsync(eventName, instanceId, instance.DefinitionId,
             $"External event {eventName} triggered. EventData: {JsonSerializer.Serialize(eventData)}", 
             activeStates: instance.ActiveStates);
-
+    
         foreach (var key in eventData.Keys)
         {
             instance.StateData[key] = eventData[key];
